@@ -71,6 +71,46 @@ call_stack("mean", max_depth = 1)
 Recursion depth is controlled with `max_depth` (default `Inf`, which
 follows every call down to primitives or a detected cycle).
 
+## Shiny module trees
+
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+and
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+build the same kind of tree for a Shiny app, either from a directory of
+`.R` files on disk or from a live `shiny.appobj`. Both take a
+`modules_only` argument that prunes the tree down to functions calling
+`NS()`/`moduleServer()`, splicing out plain wrapper functions so real
+modules underneath them stay visible:
+
+``` r
+
+app_dir <- tempfile("app")
+dir.create(app_dir)
+writeLines(
+  'launch <- function() { shinyApp(ui = app_ui(), server = app_server) }',
+  file.path(app_dir, "launch.R")
+)
+writeLines('app_ui <- function() { mod_a_ui("a") }', file.path(app_dir, "app_ui.R"))
+writeLines(
+  'app_server <- function(input, output, session) { mod_a_server("a") }',
+  file.path(app_dir, "app_server.R")
+)
+writeLines('mod_a_ui <- function(id) { ns <- NS(id) }', file.path(app_dir, "mod_a_ui.R"))
+writeLines(
+  'mod_a_server <- function(id) { moduleServer(id, function(input, output, session) {}) }',
+  file.path(app_dir, "mod_a_server.R")
+)
+
+call_tree_dir(app_dir, root = "launch", modules_only = TRUE)
+#> █─launch
+#> ├─mod_a_ui
+#> └─mod_a_server
+```
+
+Neither function requires shiny to be installed for `stackcallr` itself
+to work; shiny is in `Suggests`, needed only if you’re building a
+`shiny.appobj` to pass in.
+
 ## Functions
 
 - `call_stack(fn, max_depth = Inf)` — the exported entry point. Resolves
@@ -78,9 +118,23 @@ follows every call down to primitives or a detected cycle).
   [`codetools::findGlobals()`](https://rdrr.io/pkg/codetools/man/findGlobals.html),
   following S3 dispatch where it finds
   [`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) calls.
+- `call_tree_dir(path, root, modules_only = FALSE)` — builds the call
+  tree of every function defined in a directory of `.R` files, parsed
+  without loading or running any of it.
+- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE)`
+  — builds the call tree of a running Shiny app by inspecting a
+  `shiny.appobj`’s server function and its enclosing environment.
 - [`print.call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/print.call_stack.md)
-  — renders the returned tree, in the style of `lobstr::ast()`.
+  — renders the tree returned by any of the three, in the style of
+  `lobstr::ast()`.
 
 See
 [`vignette("stackcallr")`](https://mjfrigaard.github.io/stackcallr/articles/stackcallr.md)
-for how resolution works and what it can’t resolve.
+for how
+[`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
+resolves a function, and
+[`vignette("shiny-modules")`](https://mjfrigaard.github.io/stackcallr/articles/shiny-modules.md)
+for
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+and
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md).
