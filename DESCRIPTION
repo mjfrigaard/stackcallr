@@ -21,3 +21,4 @@ Imports:
     utils
 Config/roxygen2/version: 8.1.0
 VignetteBuilder: knitr
+URL: https://mjfrigaard.github.io/stackcallr/
