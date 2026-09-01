@@ -65,8 +65,7 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.POSIXct
 #> ├─mean.POSIXlt
-#> ├─mean.quosure
-#> └─mean.vctrs_vctr
+#> └─mean.quosure
 ```
 
 Recursion depth is controlled with `max_depth` (default `Inf`, which

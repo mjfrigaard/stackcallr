@@ -65,8 +65,7 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.POSIXct
 #> ├─mean.POSIXlt
-#> ├─mean.quosure
-#> └─mean.vctrs_vctr
+#> └─mean.quosure
 ```
 
 Recursion depth is controlled with `max_depth` (default `Inf`, which
@@ -92,6 +91,11 @@ for how resolution works and what it can’t resolve.
 
 - [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
   : Build the call tree of a function
+- [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+  : Build the call tree of a running Shiny app
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  : Build the call tree of every function defined in a directory of R
+  files
 - [`print(`*`<call_stack>`*`)`](https://mjfrigaard.github.io/stackcallr/reference/print.call_stack.md)
   : Print a call_stack tree
 
@@ -99,5 +103,7 @@ for how resolution works and what it can’t resolve.
 
 ### All vignettes
 
+- [Shiny module
+  trees](https://mjfrigaard.github.io/stackcallr/articles/shiny-modules.md):
 - [Introduction to
   stackcallr](https://mjfrigaard.github.io/stackcallr/articles/stackcallr.md):
