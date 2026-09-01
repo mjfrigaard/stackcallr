@@ -6,6 +6,12 @@ function it calls, and those calls are followed recursively, resolving
 'UseMethod()' dispatch into the registered S3 methods. The resulting
 tree is printed as an indented outline.
 
+## See also
+
+Useful links:
+
+- <https://mjfrigaard.github.io/stackcallr/>
+
 ## Author
 
 **Maintainer**: Martin Frigaard <mjfrigaard@pm.me>
