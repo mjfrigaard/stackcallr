@@ -1,8 +1,10 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # stackcallr
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 `stackcallr` inspects the call tree of an R function without running it.
@@ -12,7 +14,7 @@ methods reached through `UseMethod()` dispatch.
 
 ## Installation
 
-`stackcallr` isn't on CRAN. Install the development version from GitHub:
+`stackcallr` isn’t on CRAN. Install the development version from GitHub:
 
 ``` r
 # install.packages("pak")
@@ -24,7 +26,6 @@ pak::pak("mjfrigaard/stackcallr")
 `call_stack()` takes the name of a function as a string, bare or
 namespaced, and returns the tree of functions it calls. The example
 below stops two levels down:
-
 
 ``` r
 library(stackcallr)
@@ -56,7 +57,6 @@ actual registered methods, rather than stopping at `UseMethod` itself.
 Every `mean.*` node below is a real method, ready to be expanded further
 with a larger `max_depth`:
 
-
 ``` r
 call_stack("mean", max_depth = 1)
 #> █─mean
@@ -65,8 +65,7 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.POSIXct
 #> ├─mean.POSIXlt
-#> ├─mean.quosure
-#> └─mean.vctrs_vctr
+#> └─mean.quosure
 ```
 
 Recursion depth is controlled with `max_depth` (default `Inf`, which
@@ -81,5 +80,5 @@ follows every call down to primitives or a detected cycle).
 - `print.call_stack()` — renders the returned tree, in the style of
   `lobstr::ast()`.
 
-See `vignette("stackcallr")` for how resolution works and what it can't
+See `vignette("stackcallr")` for how resolution works and what it can’t
 resolve.

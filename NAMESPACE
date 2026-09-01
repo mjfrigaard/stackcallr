@@ -2,3 +2,5 @@
 
 S3method(print,call_stack)
 export(call_stack)
+export(call_tree_app)
+export(call_tree_dir)
