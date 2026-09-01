@@ -1,0 +1,85 @@
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# stackcallr
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`stackcallr` inspects the call tree of an R function without running it.
+Point it at a function name and it statically resolves every function
+that function calls, the functions those call, and so on, including S3
+methods reached through `UseMethod()` dispatch.
+
+## Installation
+
+`stackcallr` isn't on CRAN. Install the development version from GitHub:
+
+``` r
+# install.packages("pak")
+pak::pak("mjfrigaard/stackcallr")
+```
+
+## Usage
+
+`call_stack()` takes the name of a function as a string, bare or
+namespaced, and returns the tree of functions it calls. The example
+below stops two levels down:
+
+
+``` r
+library(stackcallr)
+
+call_stack("stats::sd", max_depth = 2)
+#> █─sd
+#> ├─as.double
+#> ├─█─is.factor
+#> │ └─inherits
+#> ├─█─is.vector
+#> │ └─.Internal
+#> ├─sqrt
+#> └─█─var
+#>   ├─.Call
+#>   ├─as.matrix
+#>   ├─c
+#>   ├─is.atomic
+#>   ├─is.data.frame
+#>   ├─is.na
+#>   ├─is.null
+#>   ├─missing
+#>   ├─pmatch
+#>   ├─stop
+#>   └─stopifnot
+```
+
+For a generic, `call_stack()` resolves `UseMethod()` dispatch into the
+actual registered methods, rather than stopping at `UseMethod` itself.
+Every `mean.*` node below is a real method, ready to be expanded further
+with a larger `max_depth`:
+
+
+``` r
+call_stack("mean", max_depth = 1)
+#> █─mean
+#> ├─mean.Date
+#> ├─mean.default
+#> ├─mean.difftime
+#> ├─mean.POSIXct
+#> ├─mean.POSIXlt
+#> ├─mean.quosure
+#> └─mean.vctrs_vctr
+```
+
+Recursion depth is controlled with `max_depth` (default `Inf`, which
+follows every call down to primitives or a detected cycle).
+
+## Functions
+
+- `call_stack(fn, max_depth = Inf)` — the exported entry point. Resolves
+  `fn` to a function, then recursively walks its body via
+  `codetools::findGlobals()`, following S3 dispatch where it finds
+  `UseMethod()` calls.
+- `print.call_stack()` — renders the returned tree, in the style of
+  `lobstr::ast()`.
+
+See `vignette("stackcallr")` for how resolution works and what it can't
+resolve.

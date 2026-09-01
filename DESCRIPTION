@@ -1,0 +1,23 @@
+Package: stackcallr
+Title: Statically Inspect and Visualize the Call Tree of a Function
+Version: 0.0.0.9000
+Authors@R:
+    person("Martin", "Frigaard", , "mjfrigaard@pm.me", role = c("aut", "cre"))
+Description: Builds the call tree of a function from its source code,
+    without running it. Given a function name, the function's body is
+    parsed to find every function it calls, and those calls are followed
+    recursively, resolving 'UseMethod()' dispatch into the registered S3
+    methods. The resulting tree is printed as an indented outline.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    codetools,
+    utils
+Config/roxygen2/version: 8.1.0
+VignetteBuilder: knitr
