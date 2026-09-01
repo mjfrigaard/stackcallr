@@ -109,15 +109,47 @@
 <p>Recursion depth is controlled with <code>max_depth</code> (default <code>Inf</code>, which follows every call down to primitives or a detected cycle).</p>
 </div>
 <div class="section level2">
+<h2 id="shiny-module-trees">Shiny module trees<a class="anchor" aria-label="anchor" href="#shiny-module-trees"></a>
+</h2>
+<p><code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> build the same kind of tree for a Shiny app, either from a directory of <code>.R</code> files on disk or from a live <code>shiny.appobj</code>. Both take a <code>modules_only</code> argument that prunes the tree down to functions calling <code>NS()</code>/<code>moduleServer()</code>, splicing out plain wrapper functions so real modules underneath them stay visible:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">app_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"app"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">app_dir</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span></span>
+<span>  <span class="st">'launch &lt;- function() { shinyApp(ui = app_ui(), server = app_server) }'</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="st">"launch.R"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="st">'app_ui &lt;- function() { mod_a_ui("a") }'</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="st">"app_ui.R"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span></span>
+<span>  <span class="st">'app_server &lt;- function(input, output, session) { mod_a_server("a") }'</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="st">"app_server.R"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="st">'mod_a_ui &lt;- function(id) { ns &lt;- NS(id) }'</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="st">"mod_a_ui.R"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span></span>
+<span>  <span class="st">'mod_a_server &lt;- function(id) { moduleServer(id, function(input, output, session) {}) }'</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">app_dir</span>, <span class="st">"mod_a_server.R"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/call_tree_dir.html">call_tree_dir</a></span><span class="op">(</span><span class="va">app_dir</span>, root <span class="op">=</span> <span class="st">"launch"</span>, modules_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; █─launch</span></span>
+<span><span class="co">#&gt; ├─mod_a_ui</span></span>
+<span><span class="co">#&gt; └─mod_a_server</span></span></code></pre></div>
+<p>Neither function requires shiny to be installed for <code>stackcallr</code> itself to work; shiny is in <code>Suggests</code>, needed only if you’re building a <code>shiny.appobj</code> to pass in.</p>
+</div>
+<div class="section level2">
 <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a>
 </h2>
 <ul>
 <li>
 <code>call_stack(fn, max_depth = Inf)</code> — the exported entry point. Resolves <code>fn</code> to a function, then recursively walks its body via <code><a href="https://rdrr.io/pkg/codetools/man/findGlobals.html" class="external-link">codetools::findGlobals()</a></code>, following S3 dispatch where it finds <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> calls.</li>
 <li>
-<code><a href="reference/print.call_stack.html">print.call_stack()</a></code> — renders the returned tree, in the style of <code>lobstr::ast()</code>.</li>
+<code>call_tree_dir(path, root, modules_only = FALSE)</code> — builds the call tree of every function defined in a directory of <code>.R</code> files, parsed without loading or running any of it.</li>
+<li>
+<code>call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE)</code> — builds the call tree of a running Shiny app by inspecting a <code>shiny.appobj</code>’s server function and its enclosing environment.</li>
+<li>
+<code><a href="reference/print.call_stack.html">print.call_stack()</a></code> — renders the tree returned by any of the three, in the style of <code>lobstr::ast()</code>.</li>
 </ul>
-<p>See <code><a href="articles/stackcallr.html">vignette("stackcallr")</a></code> for how resolution works and what it can’t resolve.</p>
+<p>See <code><a href="articles/stackcallr.html">vignette("stackcallr")</a></code> for how <code><a href="reference/call_stack.html">call_stack()</a></code> resolves a function, and <code><a href="articles/shiny-modules.html">vignette("shiny-modules")</a></code> for <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
