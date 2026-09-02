@@ -165,6 +165,46 @@ A leaf in the printed tree, then, means one of three things: a
 primitive, a cycle already followed once, or a call that static analysis
 can’t see through.
 
+## How this differs from `lobstr::cst()`
+
+If the printed trees look familiar, that’s because the block-character
+style is the one `lobstr::ast()` uses. The resemblance stops at the
+drawing. `lobstr::cst()` prints the *call stack tree* at the moment you
+call it: it walks
+[`sys.calls()`](https://rdrr.io/r/base/sys.parent.html), the frames that
+are actually executing right now. You use it from inside running code,
+usually mid-debug, after
+[`browser()`](https://rdrr.io/r/base/browser.html) has dropped you at an
+error, and it shows exactly one path, the sequence of calls that got you
+to that point. A real call stack is linear, so there are no branches to
+show.
+
+[`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
+(and
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+/
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md))
+work from the other direction. They never run the function. They parse
+its body and recursively expand everything it *could* call, including
+every branch, so a generic contributes all of its
+[`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) dispatch targets
+rather than the one method a particular run happened to hit. The result
+is a tree of possibilities, not a record of an execution.
+
+``` r
+
+# mid-debug, "how did execution get here right now"
+lobstr::cst()
+
+# no execution at all, "what could this function call, in total"
+call_stack("dplyr::select")
+```
+
+Reach for `cst()` when you’re already inside the problem. Reach for
+[`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
+when you want to audit a function you’d rather not execute, or map an
+unfamiliar codebase before running any of it.
+
 ## Learning more
 
 See
