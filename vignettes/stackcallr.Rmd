@@ -112,6 +112,36 @@ A leaf in the printed tree, then, means one of three things: a primitive,
 a cycle already followed once, or a call that static analysis can't see
 through.
 
+## How this differs from `lobstr::cst()`
+
+If the printed trees look familiar, that's because the block-character
+style is the one `lobstr::ast()` uses. The resemblance stops at the
+drawing. `lobstr::cst()` prints the *call stack tree* at the moment you
+call it: it walks `sys.calls()`, the frames that are actually executing
+right now. You use it from inside running code, usually mid-debug, after
+`browser()` has dropped you at an error, and it shows exactly one path,
+the sequence of calls that got you to that point. A real call stack is
+linear, so there are no branches to show.
+
+`call_stack()` (and `call_tree_dir()` / `call_tree_app()`) work from the
+other direction. They never run the function. They parse its body and
+recursively expand everything it *could* call, including every branch, so
+a generic contributes all of its `UseMethod()` dispatch targets rather
+than the one method a particular run happened to hit. The result is a
+tree of possibilities, not a record of an execution.
+
+```r
+# mid-debug, "how did execution get here right now"
+lobstr::cst()
+
+# no execution at all, "what could this function call, in total"
+call_stack("dplyr::select")
+```
+
+Reach for `cst()` when you're already inside the problem. Reach for
+`call_stack()` when you want to audit a function you'd rather not
+execute, or map an unfamiliar codebase before running any of it.
+
 ## Learning more
 
 See `?call_stack` for the full argument reference, and `?print.call_stack`
