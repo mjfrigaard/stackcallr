@@ -8,14 +8,14 @@ template:
   bootstrap: 5
   theme: arrow-light
   bslib:
-    primary:   "#1E5F8C"   # Atomic Blue       — links, buttons, navbar
-    secondary: "#2B2B2B"   # Eames Charcoal    — neutral text emphasis
-    success:   "#7B8B47"   # Avocado / Olive   — retro success accent
-    info:      "#4FA5B5"   # Robin's-Egg Blue  — softer secondary blue
-    warning:   "#E87B2D"   # Atomic Tangerine  — primary orange accent
-    danger:    "#B0411C"   # Burnt Sienna      — deep orange danger
-    code-color: "#16486D"  # Deep Atomic Blue  — inline & block code text
-    code-bg:    "#FDEFE0"  # Pale Tangerine    — inline & block code background
+    primary:   "#ca3c4a"   # Classic Retro red, links, buttons, navbar
+    secondary: "#3b383f"   # Retro Futurism charcoal, neutral text emphasis
+    success:   "#99beb7"   # Classic Retro teal
+    info:      "#6c6b71"   # Retro Futurism grey
+    warning:   "#f2c665"   # Classic Retro yellow
+    danger:    "#f4640d"   # Retro Futurism orange
+    code-color: "#3b383f"  # Retro Futurism charcoal, inline & block code text
+    code-bg:    "#f6f0c6"  # Retro Futurism cream, inline & block code background
     base_font:
       google: Ubuntu
     heading_font:
