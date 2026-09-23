@@ -1,21 +1,23 @@
 url: https://mjfrigaard.github.io/stackcallr/
 
 navbar:
-  bg: primary       # paint the bar with $primary (Atomic Blue)
-  type: dark        # light text for contrast on the deep blue bar
+  bg: primary       # paint the bar with $primary (rocket orange)
+  type: dark        # light text for contrast on the dark bar
 
 template:
   bootstrap: 5
-  theme: arrow-light
+  theme: arrow-dark
   bslib:
-    primary:   "#ca3c4a"   # Classic Retro red, links, buttons, navbar
-    secondary: "#3b383f"   # Retro Futurism charcoal, neutral text emphasis
-    success:   "#99beb7"   # Classic Retro teal
-    info:      "#6c6b71"   # Retro Futurism grey
-    warning:   "#f2c665"   # Classic Retro yellow
-    danger:    "#f4640d"   # Retro Futurism orange
-    code-color: "#3b383f"  # Retro Futurism charcoal, inline & block code text
-    code-bg:    "#f6f0c6"  # Retro Futurism cream, inline & block code background
+    bg: "#011627"           # Atomic Age dark navy, page background
+    fg: "#cbcbcb"           # Atomic Age brushed aluminum, page text
+    primary:   "#ff6f3c"   # Atomic Age rocket orange, links, buttons, navbar
+    secondary: "#cbcbcb"   # Atomic Age brushed aluminum, neutral text emphasis
+    success:   "#2ec4b6"   # Atomic Age teal
+    info:      "#cbcbcb"   # Atomic Age brushed aluminum
+    warning:   "#ffd23f"   # Atomic Age yellow
+    danger:    "#ff6f3c"   # Atomic Age rocket orange, palette has no dedicated red
+    code-color: "#cbcbcb"  # Atomic Age brushed aluminum, inline & block code text
+    code-bg:    "#011627"  # Atomic Age dark navy, inline & block code background
     base_font:
       google: Ubuntu
     heading_font:
