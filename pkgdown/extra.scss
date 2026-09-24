@@ -1,0 +1,8 @@
+// Inline code: bold with a subtle tint so it stands out from body text
+:not(pre) > code {
+  font-weight: 700;
+  color: $warning;
+  background-color: rgba($secondary, 0.1);
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+}
