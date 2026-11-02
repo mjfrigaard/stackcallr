@@ -21,6 +21,6 @@ Config/testthat/edition: 3
 Imports: 
     codetools,
     utils
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 VignetteBuilder: knitr
 URL: https://mjfrigaard.github.io/stackcallr/
