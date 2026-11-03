@@ -1,8 +1,27 @@
-// Inline code: bold with a subtle tint so it stands out from body text
+// 70s palette accents (colors are set in _pkgdown.yml)
+
+// Burnt Orange stripe under the navbar in both modes
+.navbar {
+  border-bottom: 3px solid #D2562B;
+}
+
+// Inline code: small pill
 :not(pre) > code {
-  font-weight: 700;
-  color: $warning;
-  background-color: rgba($secondary, 0.1);
   padding: 0.1em 0.3em;
   border-radius: 0.25rem;
+}
+
+// Code blocks: Cream in light mode, tinted Navy in dark mode
+pre {
+  background-color: #F9F3E1 !important;
+  border: 1px solid rgba(62, 42, 30, 0.15);
+}
+
+[data-bs-theme="dark"] pre {
+  background-color: rgba(242, 230, 194, 0.06) !important;
+  border-color: rgba(242, 230, 194, 0.15);
+}
+
+pre code {
+  background-color: transparent !important;
 }
