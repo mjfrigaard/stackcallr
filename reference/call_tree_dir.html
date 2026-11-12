@@ -90,7 +90,8 @@ Shiny app's source, without installing or sourcing it first.</p>
 
 <dt id="arg-root">root<a class="anchor" aria-label="anchor" href="#arg-root"></a></dt>
 <dd><p>Character scalar; name of the function to root the tree at.
-Must be one of the top-level functions found in <code>path</code>.</p></dd>
+Must be one of the top-level functions found in <code>path</code>; otherwise
+<code>call_tree_dir()</code> errors rather than returning an empty tree.</p></dd>
 
 
 <dt id="arg-modules-only">modules_only<a class="anchor" aria-label="anchor" href="#arg-modules-only"></a></dt>
@@ -108,7 +109,7 @@ from <code>root</code>.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="call_tree_app.html">call_tree_app()</a></code> for the equivalent on a running Shiny app.</p></div>
+    <div class="dont-index"><p><code><a href="call_tree_app.html">call_tree_app()</a></code> for the equivalent on a Shiny app object.</p></div>
     </div>
 
     <div class="section level2">

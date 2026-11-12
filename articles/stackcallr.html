@@ -81,10 +81,10 @@
 <h2 id="why-stackcallr">Why stackcallr<a class="anchor" aria-label="anchor" href="#why-stackcallr"></a>
 </h2>
 <p>When you’re reading unfamiliar code, one of the first questions is:
-what does this function actually call? For a simple function you can
-just read the body. For an S3 generic like <code>dplyr::select()</code>,
-the body is a single line, <code>UseMethod("select")</code>, and the
-real work happens in a method you’d have to go find yourself.</p>
+what does this function call? For a simple function you can just read
+the body. For an S3 generic like <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, the body is a
+single line, <code>UseMethod("mean")</code>, and the real work happens
+in a method you’d have to go find yourself.</p>
 <p><code>stackcallr</code> answers that question directly. Give
 <code><a href="../reference/call_stack.html">call_stack()</a></code> the name of a function, and it returns the
 tree of every function it calls, the functions those call, and so on,
@@ -122,8 +122,8 @@ children). Printing it draws the tree.</p>
 <h2 id="limiting-depth">Limiting depth<a class="anchor" aria-label="anchor" href="#limiting-depth"></a>
 </h2>
 <p>Some call trees are deep. <code>max_depth</code> caps how many levels
-are followed, so <code>max_depth = 1</code> returns only the functions
-called directly by <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code>:</p>
+are followed. For <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">stats::sd()</a></code>, <code>max_depth = 1</code>
+returns only the functions <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code> calls directly:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"stats::sd"</span>, max_depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─sd</span></span>
@@ -156,7 +156,7 @@ further:</p>
 <span><span class="co">#&gt;   ├─stop</span></span>
 <span><span class="co">#&gt;   └─stopifnot</span></span></code></pre></div>
 <p>The default, <code>max_depth = Inf</code>, follows every call all the
-way down, stopping only at primitives (functions with no R-level body to
+way down. It stops only at primitives (functions with no R-level body to
 inspect) and at calls it has already followed once, so recursive or
 mutually recursive functions don’t loop forever.</p>
 </div>
@@ -164,12 +164,11 @@ mutually recursive functions don’t loop forever.</p>
 <h2 id="following-s3-dispatch">Following S3 dispatch<a class="anchor" aria-label="anchor" href="#following-s3-dispatch"></a>
 </h2>
 <p>Static analysis alone can’t tell you what
-<code>UseMethod("select")</code> actually runs, since that depends on
-the class of the argument at call time. <code><a href="../reference/call_stack.html">call_stack()</a></code>
-handles this case specifically: when a function’s body calls
-<code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, it looks up every method registered for that
-generic and follows each one, in place of a single unhelpful
-<code>UseMethod</code> leaf.</p>
+<code>UseMethod("mean")</code> runs, since that depends on the class of
+the argument at call time. <code><a href="../reference/call_stack.html">call_stack()</a></code> handles this case
+directly. When a function’s body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, it
+looks up every method registered for that generic and follows each one,
+in place of a single unhelpful <code>UseMethod</code> leaf.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"mean"</span>, max_depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─mean</span></span>
@@ -195,8 +194,8 @@ list the functions it references, with R’s own syntax (<code>{</code>,
 <code>if</code>, <code>&lt;-</code>, <code>+</code>, …) filtered out,
 since those aren’t calls in any meaningful sense.</li>
 <li>Each referenced name is looked up in the function’s own lexical
-scope, the same place R itself would resolve it, so calls to internal,
-unexported helpers are found correctly.</li>
+scope, the same place R itself would resolve it. That’s how calls to
+internal, unexported helpers are found.</li>
 <li>If the body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, the generic’s registered
 methods are found and substituted in for that call.</li>
 <li>The process repeats for every function found, down to
@@ -219,27 +218,28 @@ the class vector in play at the time.</li>
 <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>, <code><a href="https://rdrr.io/r/base/match.fun.html" class="external-link">match.fun()</a></code>, or
 <code><a href="https://rdrr.io/r/base/Recall.html" class="external-link">Recall()</a></code>.</li>
 </ul>
-<p>A leaf in the printed tree, then, means one of three things: a
-primitive, a cycle already followed once, or a call that static analysis
-can’t see through.</p>
+<p>A leaf in the printed tree means one of three things: a primitive, a
+cycle already followed, or a call that static analysis can’t see
+through.</p>
 </div>
 <div class="section level2">
 <h2 id="how-this-differs-from-lobstrcst">How this differs from <code>lobstr::cst()</code><a class="anchor" aria-label="anchor" href="#how-this-differs-from-lobstrcst"></a>
 </h2>
 <p>If the printed trees look familiar, that’s because the
 block-character style is the one <code>lobstr::ast()</code> uses. The
-resemblance stops at the drawing. <code>lobstr::cst()</code> prints the
-<em>call stack tree</em> at the moment you call it: it walks
-<code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">sys.calls()</a></code>, the frames that are actually executing right
-now. You use it from inside running code, usually mid-debug, after
-<code><a href="https://rdrr.io/r/base/browser.html" class="external-link">browser()</a></code> has dropped you at an error, and it shows exactly
-one path, the sequence of calls that got you to that point. A real call
-stack is linear, so there are no branches to show.</p>
+resemblance stops at the drawing.</p>
+<p><code>lobstr::cst()</code> prints the <em>call stack tree</em> at the
+moment you call it: it walks <code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">sys.calls()</a></code>, the frames
+executing right now. You use it from inside running code, usually
+mid-debug after <code><a href="https://rdrr.io/r/base/browser.html" class="external-link">browser()</a></code> has dropped you at an error. It
+shows exactly one path: the sequence of calls that got you to that
+point. A real call stack is linear, so there are no branches to
+show.</p>
 <p><code><a href="../reference/call_stack.html">call_stack()</a></code> (and <code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> /
 <code><a href="../reference/call_tree_app.html">call_tree_app()</a></code>) work from the other direction. They never
 run the function. They parse its body and recursively expand everything
-it <em>could</em> call, including every branch, so a generic contributes
-all of its <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch targets rather than the one
+it <em>could</em> call, including every branch. A generic contributes
+all of its <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch targets, not just the one
 method a particular run happened to hit. The result is a tree of
 possibilities, not a record of an execution.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -252,6 +252,15 @@ possibilities, not a record of an execution.</p>
 Reach for <code><a href="../reference/call_stack.html">call_stack()</a></code> when you want to audit a function
 you’d rather not execute, or map an unfamiliar codebase before running
 any of it.</p>
+</div>
+<div class="section level2">
+<h2 id="recap">Recap<a class="anchor" aria-label="anchor" href="#recap"></a>
+</h2>
+<p><code><a href="../reference/call_stack.html">call_stack()</a></code> maps what a function can call without
+running it. It resolves <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch into the
+registered methods, and <code>max_depth</code> controls how far down it
+goes. Leaves mark primitives, cycles, and calls that static analysis
+can’t follow.</p>
 </div>
 <div class="section level2">
 <h2 id="learning-more">Learning more<a class="anchor" aria-label="anchor" href="#learning-more"></a>

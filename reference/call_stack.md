@@ -1,9 +1,9 @@
 # Build the call tree of a function
 
 `call_stack()` takes the name of a function, optionally namespaced (e.g.
-`"dplyr::select"`), statically parses its body, and recursively resolves
-every function it calls, building a tree of those calls, the calls those
-functions make, and so on.
+`"dplyr::select"`), and statically parses its body. It then recursively
+resolves every function it calls, building a tree of those calls, the
+calls those functions make, and so on.
 
 Resolution is static (read from the function's source code), not a
 runtime trace: the function is never called.
@@ -11,8 +11,11 @@ runtime trace: the function is never called.
 resolved by looking up the generic's registered S3 methods and following
 each one. Other dynamic calls
 ([`NextMethod()`](https://rdrr.io/r/base/UseMethod.html), S4 and R6
-dispatch, non-standard evaluation) show as leaves rather than being
-followed further.
+dispatch, and functions passed as data to
+[`do.call()`](https://rdrr.io/r/base/do.call.html),
+[`match.fun()`](https://rdrr.io/r/base/match.fun.html), or
+[`Recall()`](https://rdrr.io/r/base/Recall.html)) show as leaves rather
+than being followed further.
 
 ## Usage
 

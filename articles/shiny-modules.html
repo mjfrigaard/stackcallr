@@ -81,7 +81,7 @@
 <h2 id="two-functions-two-entry-points">Two functions, two entry points<a class="anchor" aria-label="anchor" href="#two-functions-two-entry-points"></a>
 </h2>
 <p><code><a href="../reference/call_stack.html">call_stack()</a></code> starts from a function that R can already
-find by name. A Shiny app usually isn’t in that position: its functions
+find by name. A Shiny app usually isn’t in that position. Its functions
 live in a directory of <code>.R</code> files that hasn’t been installed,
 or inside the environment of an app object that was built but never
 launched.</p>
@@ -162,9 +162,6 @@ function reachable from it:</p>
 show up at all. Only functions defined in the scanned files become
 nodes; calls out to <code>shiny</code> or any other package are ignored,
 since there’s no local definition to expand.</p>
-<p>If <code>root</code> isn’t one of the top-level functions found in
-<code>path</code>, the function errors rather than returning an empty
-tree.</p>
 </div>
 <div class="section level2">
 <h2 id="showing-only-modules-with-modules_only">Showing only modules with <code>modules_only</code><a class="anchor" aria-label="anchor" href="#showing-only-modules-with-modules_only"></a>
@@ -186,8 +183,8 @@ parsed expression, not a call into shiny.</p>
 the modules underneath them are still in the tree. When a node is
 dropped, its children are spliced up into its parent’s position rather
 than dropped with it. Without that, a real module reached only through a
-plain wrapper function would vanish from the pruned tree, and
-<code>modules_only</code> would be close to useless on any app with a UI
+plain wrapper function would vanish from the pruned tree. That would
+make <code>modules_only</code> close to useless on any app with a UI
 assembly layer.</p>
 <p><code>helper()</code> is gone, because it isn’t a module and has no
 module descendants to promote.</p>
@@ -289,8 +286,8 @@ raising an error.</li>
 <code>assign("name", function(...))</code>), and the name and
 unevaluated body are kept.</li>
 <li>Each body is walked recursively for references to the other
-collected names, counting both direct calls (<code>fun()</code>) and
-bare references (<code>fun</code>), so a function passed as an argument
+collected names. Both direct calls (<code>fun()</code>) and bare
+references (<code>fun</code>) count, so a function passed as an argument
 still registers as an edge.</li>
 <li>The tree is built depth-first from <code>root</code>, skipping any
 name already on the current path, so recursive or mutually recursive
@@ -300,10 +297,10 @@ functions don’t loop forever.</li>
 and non-matching nodes are spliced out.</li>
 </ol>
 <p><code><a href="../reference/call_tree_app.html">call_tree_app()</a></code> follows the same steps 3 through 5. It
-differs only in where the functions come from:
-<code>app$serverFuncSource()</code> gives the server function,
-<code><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment()</a></code> gives its enclosure, and the environment
-chain is walked upward, collecting functions until it reaches
+differs only in where the functions come from.
+<code>app$serverFuncSource()</code> gives the server function and
+<code><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment()</a></code> gives its enclosure. The environment chain is
+then walked upward, collecting functions until it reaches
 <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv()</a></code>, <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">baseenv()</a></code>, or a loaded package
 namespace.</p>
 </div>
@@ -313,13 +310,12 @@ namespace.</p>
 <p><code><a href="../reference/call_tree_app.html">call_tree_app()</a></code> requires a <code>shiny.appobj</code>. It
 cannot inspect the <code>ShinyAppHandle</code> returned by
 <code><a href="https://rdrr.io/pkg/shiny/man/startApp.html" class="external-link">shiny::startApp()</a></code> (added in shiny 1.14.0). That handle is a
-runtime control object, exposing <code><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop()</a></code>,
-<code>status()</code>, <code><a href="https://rdrr.io/r/base/connections.html" class="external-link">url()</a></code>, and <code>result()</code> for
-an app that may be running in a separate process, and it holds no
-reference back to the app’s UI, server, or environment. Passing one
-raises an error that says so, and tells you to pass the
-<code>shiny.appobj</code> itself, before calling <code><a href="https://rdrr.io/pkg/shiny/man/startApp.html" class="external-link">startApp()</a></code>
-on it.</p>
+runtime control object for an app that may be running in a separate
+process; it exposes <code><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop()</a></code>, <code>status()</code>,
+<code><a href="https://rdrr.io/r/base/connections.html" class="external-link">url()</a></code>, and <code>result()</code>. It holds no reference
+back to the app’s UI, server, or environment. Passing one raises an
+error that says so, and tells you to pass the <code>shiny.appobj</code>
+itself, before calling <code><a href="https://rdrr.io/pkg/shiny/man/startApp.html" class="external-link">startApp()</a></code> on it.</p>
 <p>Two other limits are worth knowing:</p>
 <ul>
 <li>
@@ -345,6 +341,15 @@ object it’s handed with <code><a href="https://rdrr.io/r/base/class.html" clas
 body.</p>
 <p>Shiny is in <code>Suggests</code>, and you need it only if you’re
 building a <code>shiny.appobj</code> to pass in.</p>
+</div>
+<div class="section level2">
+<h2 id="recap">Recap<a class="anchor" aria-label="anchor" href="#recap"></a>
+</h2>
+<p><code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> maps a directory of source files and
+<code><a href="../reference/call_tree_app.html">call_tree_app()</a></code> maps a <code>shiny.appobj</code>; neither
+runs the app. Both return a <code>call_stack</code> tree, and
+<code>modules_only = TRUE</code> prunes it to the modules while keeping
+modules reached through wrapper functions.</p>
 </div>
 <div class="section level2">
 <h2 id="learning-more">Learning more<a class="anchor" aria-label="anchor" href="#learning-more"></a>

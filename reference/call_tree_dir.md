@@ -30,7 +30,8 @@ call_tree_dir(path = "R", root, modules_only = FALSE)
 - root:
 
   Character scalar; name of the function to root the tree at. Must be
-  one of the top-level functions found in `path`.
+  one of the top-level functions found in `path`; otherwise
+  `call_tree_dir()` errors rather than returning an empty tree.
 
 - modules_only:
 
@@ -50,7 +51,7 @@ An object of class `call_stack` (see
 ## See also
 
 [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
-for the equivalent on a running Shiny app.
+for the equivalent on a Shiny app object.
 
 ## Examples
 

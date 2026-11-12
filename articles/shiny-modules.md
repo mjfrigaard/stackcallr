@@ -9,7 +9,7 @@ library(stackcallr)
 
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
 starts from a function that R can already find by name. A Shiny app
-usually isn’t in that position: its functions live in a directory of
+usually isn’t in that position. Its functions live in a directory of
 `.R` files that hasn’t been installed, or inside the environment of an
 app object that was built but never launched.
 
@@ -98,9 +98,6 @@ show up at all. Only functions defined in the scanned files become
 nodes; calls out to `shiny` or any other package are ignored, since
 there’s no local definition to expand.
 
-If `root` isn’t one of the top-level functions found in `path`, the
-function errors rather than returning an empty tree.
-
 ## Showing only modules with `modules_only`
 
 Both functions take `modules_only`. When `TRUE`, the tree is pruned to
@@ -126,7 +123,7 @@ directly, so neither survives the prune, but the modules underneath them
 are still in the tree. When a node is dropped, its children are spliced
 up into its parent’s position rather than dropped with it. Without that,
 a real module reached only through a plain wrapper function would vanish
-from the pruned tree, and `modules_only` would be close to useless on
+from the pruned tree. That would make `modules_only` close to useless on
 any app with a UI assembly layer.
 
 `helper()` is gone, because it isn’t a module and has no module
@@ -240,9 +237,9 @@ works entirely from parsed source:
     `assign("name", function(...))`), and the name and unevaluated body
     are kept.
 3.  Each body is walked recursively for references to the other
-    collected names, counting both direct calls (`fun()`) and bare
-    references (`fun`), so a function passed as an argument still
-    registers as an edge.
+    collected names. Both direct calls (`fun()`) and bare references
+    (`fun`) count, so a function passed as an argument still registers
+    as an edge.
 4.  The tree is built depth-first from `root`, skipping any name already
     on the current path, so recursive or mutually recursive functions
     don’t loop forever.
@@ -253,9 +250,9 @@ works entirely from parsed source:
 
 [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
 follows the same steps 3 through 5. It differs only in where the
-functions come from: `app$serverFuncSource()` gives the server function,
-[`environment()`](https://rdrr.io/r/base/environment.html) gives its
-enclosure, and the environment chain is walked upward, collecting
+functions come from. `app$serverFuncSource()` gives the server function
+and [`environment()`](https://rdrr.io/r/base/environment.html) gives its
+enclosure. The environment chain is then walked upward, collecting
 functions until it reaches
 [`globalenv()`](https://rdrr.io/r/base/environment.html),
 [`baseenv()`](https://rdrr.io/r/base/environment.html), or a loaded
@@ -267,13 +264,13 @@ package namespace.
 requires a `shiny.appobj`. It cannot inspect the `ShinyAppHandle`
 returned by
 [`shiny::startApp()`](https://rdrr.io/pkg/shiny/man/startApp.html)
-(added in shiny 1.14.0). That handle is a runtime control object,
-exposing [`stop()`](https://rdrr.io/r/base/stop.html), `status()`,
-[`url()`](https://rdrr.io/r/base/connections.html), and `result()` for
-an app that may be running in a separate process, and it holds no
-reference back to the app’s UI, server, or environment. Passing one
-raises an error that says so, and tells you to pass the `shiny.appobj`
-itself, before calling
+(added in shiny 1.14.0). That handle is a runtime control object for an
+app that may be running in a separate process; it exposes
+[`stop()`](https://rdrr.io/r/base/stop.html), `status()`,
+[`url()`](https://rdrr.io/r/base/connections.html), and `result()`. It
+holds no reference back to the app’s UI, server, or environment. Passing
+one raises an error that says so, and tells you to pass the
+`shiny.appobj` itself, before calling
 [`startApp()`](https://rdrr.io/pkg/shiny/man/startApp.html) on it.
 
 Two other limits are worth knowing:
@@ -300,6 +297,15 @@ with `$`; there is no `shiny::` call anywhere in its body.
 
 Shiny is in `Suggests`, and you need it only if you’re building a
 `shiny.appobj` to pass in.
+
+## Recap
+
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+maps a directory of source files and
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+maps a `shiny.appobj`; neither runs the app. Both return a `call_stack`
+tree, and `modules_only = TRUE` prunes it to the modules while keeping
+modules reached through wrapper functions.
 
 ## Learning more
 

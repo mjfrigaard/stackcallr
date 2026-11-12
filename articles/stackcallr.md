@@ -8,10 +8,11 @@ library(stackcallr)
 ## Why stackcallr
 
 When you’re reading unfamiliar code, one of the first questions is: what
-does this function actually call? For a simple function you can just
-read the body. For an S3 generic like `dplyr::select()`, the body is a
-single line, `UseMethod("select")`, and the real work happens in a
-method you’d have to go find yourself.
+does this function call? For a simple function you can just read the
+body. For an S3 generic like
+[`mean()`](https://rdrr.io/r/base/mean.html), the body is a single line,
+`UseMethod("mean")`, and the real work happens in a method you’d have to
+go find yourself.
 
 `stackcallr` answers that question directly. Give
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
@@ -51,9 +52,10 @@ and a list of `calls` (its children). Printing it draws the tree.
 
 ## Limiting depth
 
-Some call trees are deep. `max_depth` caps how many levels are followed,
-so `max_depth = 1` returns only the functions called directly by
-[`sd()`](https://rdrr.io/r/stats/sd.html):
+Some call trees are deep. `max_depth` caps how many levels are followed.
+For [`stats::sd()`](https://rdrr.io/r/stats/sd.html), `max_depth = 1`
+returns only the functions [`sd()`](https://rdrr.io/r/stats/sd.html)
+calls directly:
 
 ``` r
 
@@ -92,17 +94,17 @@ call_stack("stats::sd", max_depth = 2)
 #>   └─stopifnot
 ```
 
-The default, `max_depth = Inf`, follows every call all the way down,
-stopping only at primitives (functions with no R-level body to inspect)
-and at calls it has already followed once, so recursive or mutually
+The default, `max_depth = Inf`, follows every call all the way down. It
+stops only at primitives (functions with no R-level body to inspect) and
+at calls it has already followed once, so recursive or mutually
 recursive functions don’t loop forever.
 
 ## Following S3 dispatch
 
-Static analysis alone can’t tell you what `UseMethod("select")` actually
-runs, since that depends on the class of the argument at call time.
+Static analysis alone can’t tell you what `UseMethod("mean")` runs,
+since that depends on the class of the argument at call time.
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
-handles this case specifically: when a function’s body calls
+handles this case directly. When a function’s body calls
 [`UseMethod()`](https://rdrr.io/r/base/UseMethod.html), it looks up
 every method registered for that generic and follows each one, in place
 of a single unhelpful `UseMethod` leaf.
@@ -136,8 +138,8 @@ never runs the function you point it at. It works entirely from source:
     `<-`, `+`, …) filtered out, since those aren’t calls in any
     meaningful sense.
 3.  Each referenced name is looked up in the function’s own lexical
-    scope, the same place R itself would resolve it, so calls to
-    internal, unexported helpers are found correctly.
+    scope, the same place R itself would resolve it. That’s how calls to
+    internal, unexported helpers are found.
 4.  If the body calls
     [`UseMethod()`](https://rdrr.io/r/base/UseMethod.html), the
     generic’s registered methods are found and substituted in for that
@@ -161,23 +163,23 @@ stays unresolved, and shows up as a leaf rather than being expanded:
   [`match.fun()`](https://rdrr.io/r/base/match.fun.html), or
   [`Recall()`](https://rdrr.io/r/base/Recall.html).
 
-A leaf in the printed tree, then, means one of three things: a
-primitive, a cycle already followed once, or a call that static analysis
-can’t see through.
+A leaf in the printed tree means one of three things: a primitive, a
+cycle already followed, or a call that static analysis can’t see
+through.
 
 ## How this differs from `lobstr::cst()`
 
 If the printed trees look familiar, that’s because the block-character
 style is the one `lobstr::ast()` uses. The resemblance stops at the
-drawing. `lobstr::cst()` prints the *call stack tree* at the moment you
-call it: it walks
-[`sys.calls()`](https://rdrr.io/r/base/sys.parent.html), the frames that
-are actually executing right now. You use it from inside running code,
-usually mid-debug, after
-[`browser()`](https://rdrr.io/r/base/browser.html) has dropped you at an
-error, and it shows exactly one path, the sequence of calls that got you
-to that point. A real call stack is linear, so there are no branches to
-show.
+drawing.
+
+`lobstr::cst()` prints the *call stack tree* at the moment you call it:
+it walks [`sys.calls()`](https://rdrr.io/r/base/sys.parent.html), the
+frames executing right now. You use it from inside running code, usually
+mid-debug after [`browser()`](https://rdrr.io/r/base/browser.html) has
+dropped you at an error. It shows exactly one path: the sequence of
+calls that got you to that point. A real call stack is linear, so there
+are no branches to show.
 
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
 (and
@@ -186,10 +188,10 @@ show.
 [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md))
 work from the other direction. They never run the function. They parse
 its body and recursively expand everything it *could* call, including
-every branch, so a generic contributes all of its
-[`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) dispatch targets
-rather than the one method a particular run happened to hit. The result
-is a tree of possibilities, not a record of an execution.
+every branch. A generic contributes all of its
+[`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) dispatch targets,
+not just the one method a particular run happened to hit. The result is
+a tree of possibilities, not a record of an execution.
 
 ``` r
 
@@ -204,6 +206,15 @@ Reach for `cst()` when you’re already inside the problem. Reach for
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
 when you want to audit a function you’d rather not execute, or map an
 unfamiliar codebase before running any of it.
+
+## Recap
+
+[`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
+maps what a function can call without running it. It resolves
+[`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) dispatch into the
+registered methods, and `max_depth` controls how far down it goes.
+Leaves mark primitives, cycles, and calls that static analysis can’t
+follow.
 
 ## Learning more
 
