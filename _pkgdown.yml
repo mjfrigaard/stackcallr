@@ -3,34 +3,35 @@ url: https://mjfrigaard.github.io/stackcallr/
 template:
   bootstrap: 5
   light-switch: true
-  theme: arrow-light
-  theme-dark: arrow-dark
+  theme: a11y-light
+  theme-dark: a11y-dark
   bslib:
-    # 70s palette
-    primary:   "#2A6F77"   # Teal, links and buttons
-    secondary: "#1B2A41"   # Midnight Navy
-    success:   "#5B8C5A"   # Avocado Green
-    info:      "#2A6F77"   # Teal
-    warning:   "#E8A33D"   # Harvest Gold
-    danger:    "#B83A4B"   # Brick Red
     # light mode
-    body-bg:          "#FFFFFF"   # White
-    body-color:       "#3E2A1E"   # Chocolate Brown
-    headings-color:   "#1B2A41"   # Midnight Navy
-    link-hover-color: "#D2562B"   # Burnt Orange
-    code-color:       "#B83A4B"   # Brick Red
-    code-bg:          "#F9F3E1"   # Cream, softened
-    navbar-light-bg:  "#F9F3E1"   # Cream, softened
+    body-bg:    "#FBF7EE"   # paper (cream tint)
+    body-color: "#3E2A1E"   # chocolate brown
+    primary:    "#2A6F77"   # teal: links, buttons
+    secondary:  "#6B5A4C"   # muted brown
+    success:    "#4A7A49"   # avocado (darkened for text)
+    info:       "#2A6F77"   # teal
+    warning:    "#E8A33D"   # harvest gold
+    danger:     "#B83A4B"   # brick red
+    navbar-bg:  "#1B2A41"   # midnight navy (both modes)
+    code-color: "#8F3A18"   # burnt orange (darkened)
+    border-color: "#E4D8B8"
+    body-secondary-bg: "#F4ECD6"
+    body-tertiary-bg:  "#F7F1E2"
     # dark mode
-    body-bg-dark:          "#1B2A41"   # Midnight Navy
-    body-color-dark:       "#F2E6C2"   # Cream
-    link-color-dark:       "#E8A33D"   # Harvest Gold
-    link-hover-color-dark: "#D2562B"   # Burnt Orange
-    code-color-dark:       "#E8A33D"   # Harvest Gold
-    navbar-dark-bg:        "#3E2A1E"   # Chocolate Brown
+    body-bg-dark:    "#141E2E"
+    body-color-dark: "#EDE3C8"
+    body-secondary-bg-dark: "#1B2A41"
+    body-tertiary-bg-dark:  "#1F2D44"
+    border-color-dark: "#2E3F5C"
+    link-color-dark:       "#7FBFC6"
+    link-hover-color-dark: "#E8A33D"
+    code-color-dark: "#F0B865"
     base_font:
-      google: Ubuntu
+      google: IBM Plex Sans
     heading_font:
-      google: Fira Sans Condensed
+      google: IBM Plex Sans Condensed
     code_font:
-      google: Ubuntu Mono
+      google: IBM Plex Mono
