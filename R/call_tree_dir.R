@@ -16,7 +16,8 @@
 #' @param path Character scalar; directory containing `.R` files. Default
 #'   `"R"`.
 #' @param root Character scalar; name of the function to root the tree at.
-#'   Must be one of the top-level functions found in `path`.
+#'   Must be one of the top-level functions found in `path`; otherwise
+#'   `call_tree_dir()` errors rather than returning an empty tree.
 #' @param modules_only Logical. When `TRUE`, prune the tree to `root` plus
 #'   functions that call [shiny::NS()] or [shiny::moduleServer()] (Shiny
 #'   modules); everything else is spliced out, promoting its children so
@@ -32,7 +33,7 @@
 #' call_tree_dir("R", root = "launch_app", modules_only = TRUE)
 #' }
 #'
-#' @seealso [call_tree_app()] for the equivalent on a running Shiny app.
+#' @seealso [call_tree_app()] for the equivalent on a Shiny app object.
 #'
 #' @export
 call_tree_dir <- function(path = "R", root, modules_only = FALSE) {

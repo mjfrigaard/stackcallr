@@ -11,7 +11,8 @@ call_tree_dir(path = "R", root, modules_only = FALSE)
 \code{"R"}.}
 
 \item{root}{Character scalar; name of the function to root the tree at.
-Must be one of the top-level functions found in \code{path}.}
+Must be one of the top-level functions found in \code{path}; otherwise
+\code{call_tree_dir()} errors rather than returning an empty tree.}
 
 \item{modules_only}{Logical. When \code{TRUE}, prune the tree to \code{root} plus
 functions that call \code{\link[shiny:NS]{shiny::NS()}} or \code{\link[shiny:moduleServer]{shiny::moduleServer()}} (Shiny
@@ -44,5 +45,5 @@ call_tree_dir("R", root = "launch_app", modules_only = TRUE)
 
 }
 \seealso{
-\code{\link[=call_tree_app]{call_tree_app()}} for the equivalent on a running Shiny app.
+\code{\link[=call_tree_app]{call_tree_app()}} for the equivalent on a Shiny app object.
 }

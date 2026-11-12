@@ -1,18 +1,20 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # stackcallr
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 `stackcallr` inspects the call tree of an R function without running it.
-Point it at a function name and it statically resolves every function
-that function calls, the functions those call, and so on, including S3
-methods reached through `UseMethod()` dispatch.
+Point it at a function name and it reads the source to find every
+function that function calls, the functions those call, and so on. It
+also follows S3 methods reached through `UseMethod()` dispatch.
 
 ## Installation
 
-`stackcallr` isn't on CRAN. Install the development version from GitHub:
+`stackcallr` isn’t on CRAN. Install the development version from GitHub:
 
 ``` r
 # install.packages("pak")
@@ -24,7 +26,6 @@ pak::pak("mjfrigaard/stackcallr")
 `call_stack()` takes the name of a function as a string, bare or
 namespaced, and returns the tree of functions it calls. The example
 below stops two levels down:
-
 
 ``` r
 library(stackcallr)
@@ -52,10 +53,9 @@ call_stack("stats::sd", max_depth = 2)
 ```
 
 For a generic, `call_stack()` resolves `UseMethod()` dispatch into the
-actual registered methods, rather than stopping at `UseMethod` itself.
-Every `mean.*` node below is a real method, ready to be expanded further
-with a larger `max_depth`:
-
+registered methods, rather than stopping at `UseMethod` itself. Every
+`mean.*` node below is a real method, ready to be expanded further with
+a larger `max_depth`:
 
 ``` r
 call_stack("mean", max_depth = 1)
@@ -65,7 +65,8 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.POSIXct
 #> ├─mean.POSIXlt
-#> └─mean.quosure
+#> ├─mean.quosure
+#> └─mean.vctrs_vctr
 ```
 
 Recursion depth is controlled with `max_depth` (default `Inf`, which
@@ -73,12 +74,11 @@ follows every call down to primitives or a detected cycle).
 
 ## Shiny module trees
 
-`call_tree_dir()` and `call_tree_app()` build the same kind of tree for a
-Shiny app, either from a directory of `.R` files on disk or from a live
+`call_tree_dir()` and `call_tree_app()` build the same kind of tree for
+a Shiny app, either from a directory of `.R` files on disk or from a
 `shiny.appobj`. Both take a `modules_only` argument that prunes the tree
-down to functions calling `NS()`/`moduleServer()`, splicing out plain
-wrapper functions so real modules underneath them stay visible:
-
+down to functions calling `NS()` or `moduleServer()`. Plain wrapper
+functions are spliced out, so the modules underneath them stay visible:
 
 ``` r
 app_dir <- tempfile("app")
@@ -105,22 +105,22 @@ call_tree_dir(app_dir, root = "launch", modules_only = TRUE)
 ```
 
 Neither function requires shiny to be installed for `stackcallr` itself
-to work; shiny is in `Suggests`, needed only if you're building a
+to work; shiny is in `Suggests`, needed only if you’re building a
 `shiny.appobj` to pass in.
 
 ## Functions
 
-- `call_stack(fn, max_depth = Inf)` — the exported entry point. Resolves
-  `fn` to a function, then recursively walks its body via
+- `call_stack(fn, max_depth = Inf)`: the main entry point. Resolves `fn`
+  to a function, then recursively walks its body via
   `codetools::findGlobals()`, following S3 dispatch where it finds
   `UseMethod()` calls.
-- `call_tree_dir(path, root, modules_only = FALSE)` — builds the call
-  tree of every function defined in a directory of `.R` files, parsed
+- `call_tree_dir(path, root, modules_only = FALSE)`: parses a directory
+  of `.R` files and builds the call tree for every function in it,
   without loading or running any of it.
-- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE)`
-  — builds the call tree of a running Shiny app by inspecting a
-  `shiny.appobj`'s server function and its enclosing environment.
-- `print.call_stack()` — renders the tree returned by any of the three,
+- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE)`:
+  builds the call tree of a Shiny app object by inspecting a
+  `shiny.appobj`’s server function and its enclosing environment.
+- `print.call_stack()`: renders the tree returned by any of the three,
   in the style of `lobstr::ast()`.
 
 See `vignette("stackcallr")` for how `call_stack()` resolves a function,

@@ -1,4 +1,4 @@
-#' Build the call tree of a running Shiny app
+#' Build the call tree of a Shiny app object
 #'
 #' @description
 #' `call_tree_app()` inspects a [shiny::shinyApp()] object at runtime,

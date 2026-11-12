@@ -70,3 +70,9 @@ a:hover {
 h1, h2, h3 {
   letter-spacing: 0.01em;
 }
+
+// Keep body text to a readable line length (45 to 75 characters)
+main p,
+main li {
+  max-width: 70ch;
+}

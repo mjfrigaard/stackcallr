@@ -19,16 +19,16 @@ function name) and \code{calls} (a list of child nodes with the same shape).
 }
 \description{
 \code{call_stack()} takes the name of a function, optionally namespaced
-(e.g. \code{"dplyr::select"}), statically parses its body, and recursively
-resolves every function it calls, building a tree of those calls, the
-calls those functions make, and so on.
+(e.g. \code{"dplyr::select"}), and statically parses its body. It then
+recursively resolves every function it calls, building a tree of those
+calls, the calls those functions make, and so on.
 
 Resolution is static (read from the function's source code), not a
 runtime trace: the function is never called. \code{UseMethod()} dispatch is
 resolved by looking up the generic's registered S3 methods and
 following each one. Other dynamic calls (\code{NextMethod()}, S4 and R6
-dispatch, non-standard evaluation) show as leaves rather than being
-followed further.
+dispatch, and functions passed as data to \code{do.call()}, \code{match.fun()}, or
+\code{Recall()}) show as leaves rather than being followed further.
 }
 \examples{
 call_stack("mean.default", max_depth = 1)

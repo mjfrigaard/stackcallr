@@ -22,16 +22,16 @@ library(stackcallr)
 ## Two functions, two entry points
 
 `call_stack()` starts from a function that R can already find by name. A
-Shiny app usually isn't in that position: its functions live in a
+Shiny app usually isn't in that position. Its functions live in a
 directory of `.R` files that hasn't been installed, or inside the
 environment of an app object that was built but never launched.
 
 `stackcallr` covers both cases with two functions:
 
-- `call_tree_dir()` reads a directory of `.R` files from disk and builds
+* `call_tree_dir()` reads a directory of `.R` files from disk and builds
   the call graph among the functions defined there, without evaluating
   any of it.
-- `call_tree_app()` inspects a `shiny.appobj` at runtime and builds the
+* `call_tree_app()` inspects a `shiny.appobj` at runtime and builds the
   call graph among the functions visible to its server function.
 
 Both return an object of class `call_stack`, the same class
@@ -100,9 +100,6 @@ Note that `helper()` shows up under `mod_a_server()`, and that
 scanned files become nodes; calls out to `shiny` or any other package
 are ignored, since there's no local definition to expand.
 
-If `root` isn't one of the top-level functions found in `path`, the
-function errors rather than returning an empty tree.
-
 ## Showing only modules with `modules_only`
 
 Both functions take `modules_only`. When `TRUE`, the tree is pruned to
@@ -120,8 +117,8 @@ Neither calls `NS()` or `moduleServer()` directly, so neither survives
 the prune, but the modules underneath them are still in the tree. When a
 node is dropped, its children are spliced up into its parent's position
 rather than dropped with it. Without that, a real module reached only
-through a plain wrapper function would vanish from the pruned tree, and
-`modules_only` would be close to useless on any app with a UI assembly
+through a plain wrapper function would vanish from the pruned tree. That
+would make `modules_only` close to useless on any app with a UI assembly
 layer.
 
 `helper()` is gone, because it isn't a module and has no module
@@ -212,9 +209,8 @@ parsed source:
    `assign("name", function(...))`), and the name and unevaluated body
    are kept.
 3. Each body is walked recursively for references to the other collected
-   names, counting both direct calls (`fun()`) and bare references
-   (`fun`), so a function passed as an argument still registers as an
-   edge.
+   names. Both direct calls (`fun()`) and bare references (`fun`) count,
+   so a function passed as an argument still registers as an edge.
 4. The tree is built depth-first from `root`, skipping any name already
    on the current path, so recursive or mutually recursive functions
    don't loop forever.
@@ -223,27 +219,27 @@ parsed source:
    spliced out.
 
 `call_tree_app()` follows the same steps 3 through 5. It differs only in
-where the functions come from: `app$serverFuncSource()` gives the server
-function, `environment()` gives its enclosure, and the environment chain
-is walked upward, collecting functions until it reaches `globalenv()`,
-`baseenv()`, or a loaded package namespace.
+where the functions come from. `app$serverFuncSource()` gives the server
+function and `environment()` gives its enclosure. The environment chain
+is then walked upward, collecting functions until it reaches
+`globalenv()`, `baseenv()`, or a loaded package namespace.
 
 ## What it can't inspect
 
 `call_tree_app()` requires a `shiny.appobj`. It cannot inspect the
 `ShinyAppHandle` returned by `shiny::startApp()` (added in shiny
-1.14.0). That handle is a runtime control object, exposing `stop()`,
-`status()`, `url()`, and `result()` for an app that may be running in a
-separate process, and it holds no reference back to the app's UI,
-server, or environment. Passing one raises an error that says so, and
+1.14.0). That handle is a runtime control object for an app that may be
+running in a separate process; it exposes `stop()`, `status()`, `url()`,
+and `result()`. It holds no reference back to the app's UI, server, or
+environment. Passing one raises an error that says so, and
 tells you to pass the `shiny.appobj` itself, before calling `startApp()`
 on it.
 
 Two other limits are worth knowing:
 
-- `call_tree_dir()` only sees top-level function definitions. A function
+* `call_tree_dir()` only sees top-level function definitions. A function
   defined inside another function, or built by a factory, isn't a node.
-- `call_tree_app()` only sees what's visible from the server's
+* `call_tree_app()` only sees what's visible from the server's
   environment chain. Functions that live in an unrelated environment,
   or in a package namespace, stop the walk rather than being expanded.
 
@@ -257,6 +253,13 @@ is no `shiny::` call anywhere in its body.
 
 Shiny is in `Suggests`, and you need it only if you're building a
 `shiny.appobj` to pass in.
+
+## Recap
+
+`call_tree_dir()` maps a directory of source files and `call_tree_app()`
+maps a `shiny.appobj`; neither runs the app. Both return a `call_stack`
+tree, and `modules_only = TRUE` prunes it to the modules while keeping
+modules reached through wrapper functions.
 
 ## Learning more
 

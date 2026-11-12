@@ -2,7 +2,7 @@
 % Please edit documentation in R/call_tree_app.R
 \name{call_tree_app}
 \alias{call_tree_app}
-\title{Build the call tree of a running Shiny app}
+\title{Build the call tree of a Shiny app object}
 \usage{
 call_tree_app(
   app,
