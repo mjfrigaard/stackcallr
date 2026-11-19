@@ -123,7 +123,7 @@ extract_func_def <- function(expr) {
 
     val <- expr[[3]]
 
-    if (is.call(val) && as.character(val[[1]]) == "function") {
+    if (is.call(val) && identical(val[[1]], as.name("function"))) {
       return(list(name = name, body = val))
     }
   }

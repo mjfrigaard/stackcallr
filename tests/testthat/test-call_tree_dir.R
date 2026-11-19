@@ -14,6 +14,7 @@ test_that("extract_func_def returns NULL for non-function code", {
   expect_null(extract_func_def(parse(text = "x <- 5")[[1]]))
   expect_null(extract_func_def(parse(text = "print('hi')")[[1]]))
   expect_null(extract_func_def(parse(text = "utils::globalVariables(c('a', 'b'))")[[1]]))
+  expect_null(extract_func_def(parse(text = "x <- utils::head(1:3)")[[1]]))
 })
 
 test_that("find_calls finds direct calls and bare references", {
