@@ -125,12 +125,14 @@ to work; shiny is in `Suggests`, needed only if you’re building a
 - `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL)`:
   builds the call tree of a Shiny app object by inspecting a
   `shiny.appobj`’s server function and its enclosing environment.
-- All three take `exclude`, a character vector of function names to drop
-  (such as a logging helper); a dropped function’s children move up into
-  its place.
 - [`print.call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/print.call_stack.md):
   renders the tree returned by any of the three, in the style of
   `lobstr::ast()`.
+
+The three tree builders also take `exclude`, a character vector of
+function names to drop, such as a logging helper that appears under
+every node. Each dropped function’s children are spliced up into its
+place.
 
 See
 [`vignette("stackcallr")`](https://mjfrigaard.github.io/stackcallr/articles/stackcallr.md)

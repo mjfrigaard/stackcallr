@@ -129,6 +129,54 @@ any app with a UI assembly layer.
 `helper()` is gone, because it isn’t a module and has no module
 descendants to promote.
 
+## Dropping noise with `exclude`
+
+Most apps have a helper that nearly every function calls, such as a
+logging function. In a call tree, that helper shows up under almost
+every node and buries the structure you came to see. The example below
+adds a `logr_msg()` helper to each function in a new app directory:
+
+``` r
+
+log_dir <- tempfile("app")
+dir.create(log_dir)
+writeLines(
+  c(
+    'launch <- function() { logr_msg("start"); app_ui() }',
+    'app_ui <- function() { logr_msg("ui"); mod_a_ui("a") }',
+    'mod_a_ui <- function(id) { logr_msg("mod"); NS(id) }',
+    'logr_msg <- function(msg) message(msg)'
+  ),
+  file.path(log_dir, "app.R")
+)
+call_tree_dir(log_dir, root = "launch")
+#> █─launch
+#> ├─logr_msg
+#> └─█─app_ui
+#>   ├─logr_msg
+#>   └─█─mod_a_ui
+#>     └─logr_msg
+```
+
+`exclude` takes a character vector of function names to drop. Each
+dropped function’s children are spliced up into its place, the same way
+`modules_only` handles wrapper functions:
+
+``` r
+
+call_tree_dir(log_dir, root = "launch", exclude = "logr_msg")
+#> █─launch
+#> └─█─app_ui
+#>   └─mod_a_ui
+```
+
+`exclude` runs after `modules_only`, so the two combine. It never drops
+`root`.
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+and
+[`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
+take the same argument.
+
 ## Inspecting a live app with `call_tree_app()`
 
 `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only)` works on
@@ -305,7 +353,8 @@ maps a directory of source files and
 [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
 maps a `shiny.appobj`; neither runs the app. Both return a `call_stack`
 tree, and `modules_only = TRUE` prunes it to the modules while keeping
-modules reached through wrapper functions.
+modules reached through wrapper functions. `exclude` drops named
+functions, such as a logging helper, from any of the three trees.
 
 ## Learning more
 

@@ -153,10 +153,10 @@
 <code>call_tree_dir(path, root, modules_only = FALSE, exclude = NULL)</code>: parses a directory of <code>.R</code> files and builds the call tree for every function in it, without loading or running any of it.</li>
 <li>
 <code>call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL)</code>: builds the call tree of a Shiny app object by inspecting a <code>shiny.appobj</code>’s server function and its enclosing environment.</li>
-<li>All three take <code>exclude</code>, a character vector of function names to drop (such as a logging helper); a dropped function’s children move up into its place.</li>
 <li>
 <code><a href="reference/print.call_stack.html">print.call_stack()</a></code>: renders the tree returned by any of the three, in the style of <code>lobstr::ast()</code>.</li>
 </ul>
+<p>The three tree builders also take <code>exclude</code>, a character vector of function names to drop, such as a logging helper that appears under every node. Each dropped function’s children are spliced up into its place.</p>
 <p>See <code><a href="articles/stackcallr.html">vignette("stackcallr")</a></code> for how <code><a href="reference/call_stack.html">call_stack()</a></code> resolves a function, and <code><a href="articles/shiny-modules.html">vignette("shiny-modules")</a></code> for <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code>.</p>
 </div>
 </div>
