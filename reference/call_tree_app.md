@@ -30,7 +30,8 @@ call_tree_app(
   app_fun = "app",
   ui_fun = NULL,
   server_fun = NULL,
-  modules_only = FALSE
+  modules_only = FALSE,
+  exclude = NULL
 )
 ```
 
@@ -71,6 +72,12 @@ call_tree_app(
   Logical; see
   [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).
   Default `FALSE`.
+
+- exclude:
+
+  Character vector; see
+  [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).
+  Default `NULL`.
 
 ## Value
 

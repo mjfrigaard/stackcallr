@@ -76,7 +76,7 @@ Shiny app's source, without installing or sourcing it first.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">call_tree_dir</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"R"</span>, <span class="va">root</span>, modules_only <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">call_tree_dir</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"R"</span>, <span class="va">root</span>, modules_only <span class="op">=</span> <span class="cn">FALSE</span>, exclude <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -102,6 +102,14 @@ modules reached through a non-module wrapper function stay visible.
 Default <code>FALSE</code>, which keeps every locally-defined function reachable
 from <code>root</code>.</p></dd>
 
+
+<dt id="arg-exclude">exclude<a class="anchor" aria-label="anchor" href="#arg-exclude"></a></dt>
+<dd><p>Character vector of function names to drop from the tree,
+e.g. a logging helper such as <code>"logr_msg"</code> that appears under every
+node. A dropped function's children are spliced up into its place, as
+with <code>modules_only</code>. The root is never dropped. Default <code>NULL</code>, which
+drops nothing.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -117,6 +125,7 @@ from <code>root</code>.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">call_tree_dir</span><span class="op">(</span><span class="st">"R"</span>, root <span class="op">=</span> <span class="st">"launch_app"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">call_tree_dir</span><span class="op">(</span><span class="st">"R"</span>, root <span class="op">=</span> <span class="st">"launch_app"</span>, modules_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">call_tree_dir</span><span class="op">(</span><span class="st">"R"</span>, root <span class="op">=</span> <span class="st">"launch_app"</span>, exclude <span class="op">=</span> <span class="st">"logr_msg"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -20,7 +20,7 @@ than being followed further.
 ## Usage
 
 ``` r
-call_stack(fn, max_depth = Inf)
+call_stack(fn, max_depth = Inf, exclude = NULL)
 ```
 
 ## Arguments
@@ -34,6 +34,13 @@ call_stack(fn, max_depth = Inf)
 
   Maximum recursion depth. Default `Inf`, which follows every call down
   to a primitive or a cycle already visited.
+
+- exclude:
+
+  Character vector of function names to drop from the tree, e.g. a
+  logging helper that appears under every node. A dropped function's
+  children are spliced up into its place. The root is never dropped.
+  Default `NULL`, which drops nothing.
 
 ## Value
 
@@ -76,4 +83,22 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.quosure
 #> └─mean.vctrs_vctr
+
+# drop noise calls
+call_stack("mean.default", max_depth = 1, exclude = "warning")
+#> █─mean.default
+#> ├─.Internal
+#> ├─anyNA
+#> ├─c
+#> ├─floor
+#> ├─is.complex
+#> ├─is.logical
+#> ├─is.na
+#> ├─is.numeric
+#> ├─isTRUE
+#> ├─length
+#> ├─return
+#> ├─sort.int
+#> ├─stop
+#> └─unique
 ```

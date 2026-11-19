@@ -43,6 +43,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="stackcallr-development-version">stackcallr (development version)<a class="anchor" aria-label="anchor" href="#stackcallr-development-version"></a></h2>
+<ul><li><p><code><a href="../reference/call_stack.html">call_stack()</a></code>, <code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code>, and <code><a href="../reference/call_tree_app.html">call_tree_app()</a></code> gain an <code>exclude</code> argument: a character vector of function names to drop from the tree (for example a logging helper that appears under every node). A dropped function’s children are spliced up into its place.</p></li>
+<li><p><code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> no longer errors on files with a top-level namespaced call such as <code>utils::globalVariables(...)</code>.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="stackcallr-010">stackcallr 0.1.0<a class="anchor" aria-label="anchor" href="#stackcallr-010"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-1-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-1-0"></a></h3>

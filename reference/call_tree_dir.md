@@ -18,7 +18,7 @@ without installing or sourcing it first.
 ## Usage
 
 ``` r
-call_tree_dir(path = "R", root, modules_only = FALSE)
+call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
 ```
 
 ## Arguments
@@ -43,6 +43,14 @@ call_tree_dir(path = "R", root, modules_only = FALSE)
   visible. Default `FALSE`, which keeps every locally-defined function
   reachable from `root`.
 
+- exclude:
+
+  Character vector of function names to drop from the tree, e.g. a
+  logging helper such as `"logr_msg"` that appears under every node. A
+  dropped function's children are spliced up into its place, as with
+  `modules_only`. The root is never dropped. Default `NULL`, which drops
+  nothing.
+
 ## Value
 
 An object of class `call_stack` (see
@@ -59,5 +67,6 @@ for the equivalent on a Shiny app object.
 if (FALSE) { # \dontrun{
 call_tree_dir("R", root = "launch_app")
 call_tree_dir("R", root = "launch_app", modules_only = TRUE)
+call_tree_dir("R", root = "launch_app", exclude = "logr_msg")
 } # }
 ```

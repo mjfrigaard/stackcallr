@@ -1,5 +1,20 @@
 # Changelog
 
+## stackcallr (development version)
+
+- [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md),
+  [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md),
+  and
+  [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+  gain an `exclude` argument: a character vector of function names to
+  drop from the tree (for example a logging helper that appears under
+  every node). A dropped function’s children are spliced up into its
+  place.
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  no longer errors on files with a top-level namespaced call such as
+  `utils::globalVariables(...)`.
+
 ## stackcallr 0.1.0
 
 ### New features
