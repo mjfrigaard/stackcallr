@@ -36,6 +36,7 @@
 #'   comparing function bodies against those visible in the server's
 #'   environment.
 #' @param modules_only Logical; see [call_tree_dir()]. Default `FALSE`.
+#' @param exclude Character vector; see [call_tree_dir()]. Default `NULL`.
 #'
 #' @return An object of class `call_stack` (see [call_stack()]).
 #'
@@ -53,7 +54,11 @@ call_tree_app <- function(app,
                            app_fun = "app",
                            ui_fun = NULL,
                            server_fun = NULL,
-                           modules_only = FALSE) {
+                           modules_only = FALSE,
+                           exclude = NULL) {
+  stopifnot(
+    "`exclude` must be NULL or a character vector" = is.null(exclude) || is.character(exclude)
+  )
   if (inherits(app, "ShinyAppHandle")) {
     stop(
       "`app` is a ShinyAppHandle, returned by shiny::startApp(). ",
@@ -123,6 +128,7 @@ call_tree_app <- function(app,
     is_module <- vapply(known_fns, function(f) uses_ns(body(f)), logical(1))
     tree$calls <- prune_children(tree$calls, names(which(is_module)))
   }
+  tree$calls <- splice_out(tree$calls, exclude)
 
   class(tree) <- "call_stack"
   tree

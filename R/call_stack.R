@@ -17,6 +17,10 @@
 #'   `"pkg:::internal_fun"`, or `"mean"`.
 #' @param max_depth Maximum recursion depth. Default `Inf`, which follows
 #'   every call down to a primitive or a cycle already visited.
+#' @param exclude Character vector of function names to drop from the tree,
+#'   e.g. a logging helper that appears under every node. A dropped
+#'   function's children are spliced up into its place. The root is never
+#'   dropped. Default `NULL`, which drops nothing.
 #'
 #' @return An object of class `call_stack`: a named list with `name` (the
 #'   function name) and `calls` (a list of child nodes with the same shape).
@@ -29,16 +33,21 @@
 #' # a generic: UseMethod() is replaced by the methods it dispatches to
 #' call_stack("mean", max_depth = 1)
 #'
+#' # drop noise calls
+#' call_stack("mean.default", max_depth = 1, exclude = "warning")
+#'
 #' @export
-call_stack <- function(fn, max_depth = Inf) {
+call_stack <- function(fn, max_depth = Inf, exclude = NULL) {
   stopifnot(
-    "`fn` must be a single character string" = is.character(fn) && length(fn) == 1
+    "`fn` must be a single character string" = is.character(fn) && length(fn) == 1,
+    "`exclude` must be NULL or a character vector" = is.null(exclude) || is.character(exclude)
   )
 
   root <- resolve_fn(fn)
   visited <- new.env(parent = emptyenv())
 
   node <- build_node(root$name, root$fun, depth = 1L, max_depth = max_depth, visited = visited)
+  node$calls <- splice_out(node$calls, exclude)
   class(node) <- "call_stack"
   node
 }

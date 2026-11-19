@@ -24,6 +24,11 @@
 #'   modules reached through a non-module wrapper function stay visible.
 #'   Default `FALSE`, which keeps every locally-defined function reachable
 #'   from `root`.
+#' @param exclude Character vector of function names to drop from the tree,
+#'   e.g. a logging helper such as `"logr_msg"` that appears under every
+#'   node. A dropped function's children are spliced up into its place, as
+#'   with `modules_only`. The root is never dropped. Default `NULL`, which
+#'   drops nothing.
 #'
 #' @return An object of class `call_stack` (see [call_stack()]).
 #'
@@ -31,15 +36,17 @@
 #' \dontrun{
 #' call_tree_dir("R", root = "launch_app")
 #' call_tree_dir("R", root = "launch_app", modules_only = TRUE)
+#' call_tree_dir("R", root = "launch_app", exclude = "logr_msg")
 #' }
 #'
 #' @seealso [call_tree_app()] for the equivalent on a Shiny app object.
 #'
 #' @export
-call_tree_dir <- function(path = "R", root, modules_only = FALSE) {
+call_tree_dir <- function(path = "R", root, modules_only = FALSE, exclude = NULL) {
   stopifnot(
     "`path` must be a single character string" = is.character(path) && length(path) == 1,
-    "`root` must be a single character string" = is.character(root) && length(root) == 1
+    "`root` must be a single character string" = is.character(root) && length(root) == 1,
+    "`exclude` must be NULL or a character vector" = is.null(exclude) || is.character(exclude)
   )
 
   func_defs <- parse_dir_functions(path)
@@ -62,6 +69,7 @@ call_tree_dir <- function(path = "R", root, modules_only = FALSE) {
     is_module <- vapply(func_defs, uses_ns, logical(1))
     tree$calls <- prune_children(tree$calls, names(which(is_module)))
   }
+  tree$calls <- splice_out(tree$calls, exclude)
 
   class(tree) <- "call_stack"
   tree
@@ -100,7 +108,7 @@ parse_dir_functions <- function(path) {
 #'
 #' @noRd
 extract_func_def <- function(expr) {
-  if (!is.call(expr)) {
+  if (!is.call(expr) || !is.name(expr[[1]])) {
     return(NULL)
   }
 
@@ -218,6 +226,25 @@ prune_children <- function(calls, keep_names) {
       out <- c(out, list(list(name = child$name, calls = pruned_grandchildren)))
     } else {
       out <- c(out, pruned_grandchildren)
+    }
+  }
+  out
+}
+
+#' Drop call_stack nodes named in `exclude`, splicing their children up
+#'
+#' The inverse of `prune_children()`: a node named in `exclude` is removed
+#' and its (already processed) children take its place in the parent.
+#'
+#' @noRd
+splice_out <- function(calls, exclude) {
+  out <- list()
+  for (child in calls) {
+    grandchildren <- splice_out(child$calls, exclude)
+    if (child$name %in% exclude) {
+      out <- c(out, grandchildren)
+    } else {
+      out <- c(out, list(list(name = child$name, calls = grandchildren)))
     }
   }
   out

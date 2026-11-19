@@ -65,8 +65,7 @@ call_stack("mean", max_depth = 1)
 #> ├─mean.difftime
 #> ├─mean.POSIXct
 #> ├─mean.POSIXlt
-#> ├─mean.quosure
-#> └─mean.vctrs_vctr
+#> └─mean.quosure
 ```
 
 Recursion depth is controlled with `max_depth` (default `Inf`, which
@@ -110,16 +109,19 @@ to work; shiny is in `Suggests`, needed only if you’re building a
 
 ## Functions
 
-- `call_stack(fn, max_depth = Inf)`: the main entry point. Resolves `fn`
-  to a function, then recursively walks its body via
-  `codetools::findGlobals()`, following S3 dispatch where it finds
+- `call_stack(fn, max_depth = Inf, exclude = NULL)`: the main entry
+  point. Resolves `fn` to a function, then recursively walks its body
+  via `codetools::findGlobals()`, following S3 dispatch where it finds
   `UseMethod()` calls.
-- `call_tree_dir(path, root, modules_only = FALSE)`: parses a directory
-  of `.R` files and builds the call tree for every function in it,
-  without loading or running any of it.
-- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE)`:
+- `call_tree_dir(path, root, modules_only = FALSE, exclude = NULL)`:
+  parses a directory of `.R` files and builds the call tree for every
+  function in it, without loading or running any of it.
+- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL)`:
   builds the call tree of a Shiny app object by inspecting a
   `shiny.appobj`’s server function and its enclosing environment.
+- All three take `exclude`, a character vector of function names to drop
+  (such as a logging helper); a dropped function’s children move up into
+  its place.
 - `print.call_stack()`: renders the tree returned by any of the three,
   in the style of `lobstr::ast()`.
 

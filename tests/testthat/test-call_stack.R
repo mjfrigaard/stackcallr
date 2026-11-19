@@ -89,3 +89,15 @@ test_that("cycles do not cause infinite recursion", {
   root <- build_node("f", fn_env$f, depth = 1L, max_depth = Inf, visited = new.env())
   expect_identical(root$name, "f")
 })
+
+test_that("exclude removes named calls from the tree", {
+  result <- call_stack("stats::sd", max_depth = 1, exclude = c("sqrt", "var"))
+  names <- vapply(result$calls, function(x) x$name, character(1))
+
+  expect_false(any(c("sqrt", "var") %in% names))
+  expect_true("is.factor" %in% names)
+})
+
+test_that("errors on non-character exclude", {
+  expect_error(call_stack("stats::sd", exclude = 1), "`exclude`")
+})

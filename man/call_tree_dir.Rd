@@ -4,7 +4,7 @@
 \alias{call_tree_dir}
 \title{Build the call tree of every function defined in a directory of R files}
 \usage{
-call_tree_dir(path = "R", root, modules_only = FALSE)
+call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
 }
 \arguments{
 \item{path}{Character scalar; directory containing \code{.R} files. Default
@@ -20,6 +20,12 @@ modules); everything else is spliced out, promoting its children so
 modules reached through a non-module wrapper function stay visible.
 Default \code{FALSE}, which keeps every locally-defined function reachable
 from \code{root}.}
+
+\item{exclude}{Character vector of function names to drop from the tree,
+e.g. a logging helper such as \code{"logr_msg"} that appears under every
+node. A dropped function's children are spliced up into its place, as
+with \code{modules_only}. The root is never dropped. Default \code{NULL}, which
+drops nothing.}
 }
 \value{
 An object of class \code{call_stack} (see \code{\link[=call_stack]{call_stack()}}).
@@ -41,6 +47,7 @@ Shiny app's source, without installing or sourcing it first.
 \dontrun{
 call_tree_dir("R", root = "launch_app")
 call_tree_dir("R", root = "launch_app", modules_only = TRUE)
+call_tree_dir("R", root = "launch_app", exclude = "logr_msg")
 }
 
 }

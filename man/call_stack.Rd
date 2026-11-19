@@ -4,7 +4,7 @@
 \alias{call_stack}
 \title{Build the call tree of a function}
 \usage{
-call_stack(fn, max_depth = Inf)
+call_stack(fn, max_depth = Inf, exclude = NULL)
 }
 \arguments{
 \item{fn}{Character string naming a function, e.g. \code{"dplyr::select"},
@@ -12,6 +12,11 @@ call_stack(fn, max_depth = Inf)
 
 \item{max_depth}{Maximum recursion depth. Default \code{Inf}, which follows
 every call down to a primitive or a cycle already visited.}
+
+\item{exclude}{Character vector of function names to drop from the tree,
+e.g. a logging helper that appears under every node. A dropped
+function's children are spliced up into its place. The root is never
+dropped. Default \code{NULL}, which drops nothing.}
 }
 \value{
 An object of class \code{call_stack}: a named list with \code{name} (the
@@ -35,6 +40,9 @@ call_stack("mean.default", max_depth = 1)
 
 # a generic: UseMethod() is replaced by the methods it dispatches to
 call_stack("mean", max_depth = 1)
+
+# drop noise calls
+call_stack("mean.default", max_depth = 1, exclude = "warning")
 
 }
 \seealso{

@@ -9,7 +9,8 @@ call_tree_app(
   app_fun = "app",
   ui_fun = NULL,
   server_fun = NULL,
-  modules_only = FALSE
+  modules_only = FALSE,
+  exclude = NULL
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ comparing function bodies against those visible in the server's
 environment.}
 
 \item{modules_only}{Logical; see \code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{FALSE}.}
+
+\item{exclude}{Character vector; see \code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{NULL}.}
 }
 \value{
 An object of class \code{call_stack} (see \code{\link[=call_stack]{call_stack()}}).

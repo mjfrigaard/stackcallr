@@ -80,3 +80,17 @@ test_that("modules_only prunes non-module helpers while keeping modules reachabl
   expect_false("a_helper" %in% all_names(tree))
   expect_true("mod_a_server" %in% all_names(tree))
 })
+
+test_that("exclude removes named functions from the tree", {
+  helper_server <- function(input, output, session) {
+    mod_a_server("a")
+    a_helper(42)
+  }
+  app <- shiny::shinyApp(ui = function() shiny::fluidPage(), server = helper_server)
+
+  tree <- call_tree_app(app, exclude = "a_helper")
+
+  all_names <- function(node) c(node$name, unlist(lapply(node$calls, all_names)))
+  expect_false("a_helper" %in% all_names(tree))
+  expect_true("mod_a_server" %in% all_names(tree))
+})

@@ -13,6 +13,7 @@ test_that("extract_func_def extracts <- and = assignments", {
 test_that("extract_func_def returns NULL for non-function code", {
   expect_null(extract_func_def(parse(text = "x <- 5")[[1]]))
   expect_null(extract_func_def(parse(text = "print('hi')")[[1]]))
+  expect_null(extract_func_def(parse(text = "utils::globalVariables(c('a', 'b'))")[[1]]))
 })
 
 test_that("find_calls finds direct calls and bare references", {
@@ -100,4 +101,49 @@ test_that("call_tree_dir errors when root isn't found", {
 test_that("call_tree_dir errors on non-character path or root", {
   expect_error(call_tree_dir(1, root = "f"), "single character string")
   expect_error(call_tree_dir("R", root = 1), "single character string")
+})
+
+test_that("splice_out drops named nodes and promotes their children", {
+  calls <- list(
+    list(name = "a", calls = list(list(name = "log", calls = list()))),
+    list(name = "log", calls = list(list(name = "b", calls = list())))
+  )
+  out <- splice_out(calls, "log")
+  expect_equal(vapply(out, `[[`, character(1), "name"), c("a", "b"))
+  expect_length(out[[1]]$calls, 0)
+})
+
+test_that("call_tree_dir exclude removes noise functions at every level", {
+  dir <- withr::local_tempdir()
+  write_r_files(dir, list(
+    "launch.R" = 'launch <- function() { logr_msg("start"); app_ui() }',
+    "app_ui.R" = 'app_ui <- function() { logr_msg("ui"); mod_a_ui("a") }',
+    "mod_a.R"  = 'mod_a_ui <- function(id) { logr_msg("mod"); NS(id) }',
+    "logr.R"   = 'logr_msg <- function(x) message(x)'
+  ))
+
+  tree <- call_tree_dir(dir, root = "launch", exclude = "logr_msg")
+
+  all_names <- function(node) c(node$name, unlist(lapply(node$calls, all_names)))
+  expect_false("logr_msg" %in% all_names(tree))
+  expect_equal(all_names(tree), c("launch", "app_ui", "mod_a_ui"))
+})
+
+test_that("call_tree_dir exclude composes with modules_only and ignores root", {
+  dir <- withr::local_tempdir()
+  write_r_files(dir, list(
+    "launch.R" = 'launch <- function() { app_ui() }',
+    "app_ui.R" = 'app_ui <- function() { mod_a_ui("a"); mod_b_ui("b") }',
+    "mod_a.R"  = 'mod_a_ui <- function(id) NS(id)',
+    "mod_b.R"  = 'mod_b_ui <- function(id) NS(id)'
+  ))
+
+  tree <- call_tree_dir(dir, root = "launch", modules_only = TRUE, exclude = c("launch", "mod_b_ui"))
+
+  expect_equal(tree$name, "launch")
+  expect_equal(vapply(tree$calls, `[[`, character(1), "name"), "mod_a_ui")
+})
+
+test_that("call_tree_dir errors on non-character exclude", {
+  expect_error(call_tree_dir("R", root = "f", exclude = 1), "`exclude`")
 })
