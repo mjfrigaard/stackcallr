@@ -1,6 +1,39 @@
 # Changelog
 
-## stackcallr (development version)
+## stackcallr 0.2.0
+
+### New features
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  and
+  [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+  gain `max_depth` (levels shown below `root`), `prune` (drop a function
+  and its whole subtree, without splicing its children up), and `keep`
+  (regular expressions; keep matching functions with their subtrees plus
+  the path from `root` to them).
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  gains `include_ns`: calls to functions exported by the named packages
+  are shown as nodes, nested as written, so
+  `shinyApp(ui = app_ui, server = app_server)` puts both functions under
+  `shinyApp`.
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  gains `include_defaults`: when `TRUE`, calls in default argument
+  values (`function(dir = util_dir())`) are included.
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  warns when a function is defined more than once in `path`, naming each
+  function and its files.
+
+### Breaking changes
+
+- With `modules_only = TRUE`, the functions `root` calls directly (such
+  as `app_ui()` and `app_server()`) are now kept, so UI and server
+  modules stay grouped under them. Deeper non-module functions are still
+  spliced out.
+
+### Earlier changes
 
 - [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md),
   [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md),

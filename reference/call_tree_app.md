@@ -31,7 +31,10 @@ call_tree_app(
   ui_fun = NULL,
   server_fun = NULL,
   modules_only = FALSE,
-  exclude = NULL
+  exclude = NULL,
+  max_depth = Inf,
+  keep = NULL,
+  prune = NULL
 )
 ```
 
@@ -74,6 +77,24 @@ call_tree_app(
   Default `FALSE`.
 
 - exclude:
+
+  Character vector; see
+  [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).
+  Default `NULL`.
+
+- max_depth:
+
+  Number of levels below the root; see
+  [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).
+  Default `Inf`.
+
+- keep:
+
+  Character vector of regular expressions; see
+  [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).
+  Default `NULL`.
+
+- prune:
 
   Character vector; see
   [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md).

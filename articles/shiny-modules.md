@@ -29,8 +29,8 @@ separate renderer to learn.
 
 ## Scanning a directory with `call_tree_dir()`
 
-`call_tree_dir(path, root, modules_only)` parses every `.R` file in
-`path`, extracts each top-level function definition
+`call_tree_dir(path, root, ...)` parses every `.R` file in `path`,
+extracts each top-level function definition
 (`name <- function(...) ...`), and builds the call graph among those
 locally-defined functions. It returns the tree of calls reachable from
 `root`.
@@ -112,19 +112,24 @@ shiny.
 
 call_tree_dir(app_dir, root = "launch", modules_only = TRUE)
 #> █─launch
-#> ├─mod_a_ui
-#> └─mod_a_server
+#> ├─█─app_ui
+#> │ └─mod_a_ui
+#> └─█─app_server
+#>   └─mod_a_server
 ```
 
-The interesting part is what happened to `app_ui()` and `app_server()`.
-Neither calls [`NS()`](https://rdrr.io/pkg/shiny/man/NS.html) or
-[`moduleServer()`](https://rdrr.io/pkg/shiny/man/moduleServer.html)
-directly, so neither survives the prune, but the modules underneath them
-are still in the tree. When a node is dropped, its children are spliced
-up into its parent’s position rather than dropped with it. Without that,
-a real module reached only through a plain wrapper function would vanish
-from the pruned tree. That would make `modules_only` close to useless on
-any app with a UI assembly layer.
+`app_ui()` and `app_server()` don’t call
+[`NS()`](https://rdrr.io/pkg/shiny/man/NS.html) or
+[`moduleServer()`](https://rdrr.io/pkg/shiny/man/moduleServer.html), but
+they stay in the tree because `root` calls them directly. `modules_only`
+always keeps the functions `root` calls, so UI modules stay grouped
+under the UI function and server modules under the server function.
+
+Below that level, a function that isn’t a module is dropped, and its
+children are spliced up into its parent’s position rather than dropped
+with it. Without that, a real module reached only through a plain
+wrapper (a `tabs_ui()` that assembles several module UIs, say) would
+vanish from the pruned tree.
 
 `helper()` is gone, because it isn’t a module and has no module
 descendants to promote.
@@ -177,6 +182,65 @@ and
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
 take the same argument.
 
+## Trimming a tree with `prune`, `keep`, and `max_depth`
+
+Three more arguments trim a tree. `prune` drops a function together with
+everything below it, where `exclude` splices the children up. `keep`
+takes regular expressions and keeps only the matching functions (with
+their subtrees) and the path from `root` down to them. `max_depth` sets
+how many levels below `root` are shown:
+
+``` r
+
+call_tree_dir(app_dir, root = "launch", prune = "app_server")
+#> █─launch
+#> └─█─app_ui
+#>   └─mod_a_ui
+call_tree_dir(app_dir, root = "launch", keep = "_server$")
+#> █─launch
+#> └─█─app_server
+#>   └─█─mod_a_server
+#>     └─helper
+call_tree_dir(app_dir, root = "launch", max_depth = 1)
+#> █─launch
+#> ├─app_ui
+#> └─app_server
+```
+
+They run in this order: `prune`, `modules_only`, `exclude`, `keep`, then
+`max_depth`.
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+takes all three.
+
+## External and default argument calls
+
+`include_ns` names packages whose exported functions should show up as
+nodes. They are nested the way the calls are written, so
+`shinyApp(ui = app_ui(), server = app_server)` puts both functions under
+`shinyApp`:
+
+``` r
+
+call_tree_dir(app_dir, root = "launch", include_ns = "shiny")
+#> █─launch
+#> └─█─shinyApp
+#>   ├─█─app_ui
+#>   │ └─█─mod_a_ui
+#>   │   └─NS
+#>   └─█─app_server
+#>     └─█─mod_a_server
+#>       └─█─moduleServer
+#>         └─helper
+```
+
+External functions are never followed into their own source.
+`include_defaults = TRUE` also reads calls in default argument values,
+such as `function(dir = util_dir())`, which are skipped otherwise.
+
+If a function is defined in more than one file,
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+warns and names the files. The definition parsed last is used.
+
 ## Inspecting a live app with `call_tree_app()`
 
 `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only)` works on
@@ -228,8 +292,10 @@ text only:
 
 call_tree_app(app, app_fun = "launch", modules_only = TRUE)
 #> █─launch
-#> ├─mod_a_ui
-#> └─mod_a_server
+#> ├─█─app_ui
+#> │ └─mod_a_ui
+#> └─█─app_server
+#>   └─mod_a_server
 ```
 
 ### Naming the UI function

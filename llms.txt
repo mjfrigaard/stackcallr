@@ -78,9 +78,9 @@ and
 [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
 build the same kind of tree for a Shiny app, either from a directory of
 `.R` files on disk or from a `shiny.appobj`. Both take a `modules_only`
-argument that prunes the tree down to functions calling `NS()` or
-`moduleServer()`. Plain wrapper functions are spliced out, so the
-modules underneath them stay visible:
+argument that prunes the tree down to the functions `root` calls plus
+functions calling `NS()` or `moduleServer()`. Deeper wrapper functions
+are spliced out, so the modules underneath them stay visible:
 
 ``` r
 
@@ -103,8 +103,10 @@ writeLines(
 
 call_tree_dir(app_dir, root = "launch", modules_only = TRUE)
 #> █─launch
-#> ├─mod_a_ui
-#> └─mod_a_server
+#> ├─█─app_ui
+#> │ └─mod_a_ui
+#> └─█─app_server
+#>   └─mod_a_server
 ```
 
 Neither function requires shiny to be installed for `stackcallr` itself
@@ -119,10 +121,10 @@ to work; shiny is in `Suggests`, needed only if you’re building a
   [`codetools::findGlobals()`](https://rdrr.io/pkg/codetools/man/findGlobals.html),
   following S3 dispatch where it finds
   [`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) calls.
-- `call_tree_dir(path, root, modules_only = FALSE, exclude = NULL)`:
+- `call_tree_dir(path, root, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL, include_ns = NULL, include_defaults = FALSE)`:
   parses a directory of `.R` files and builds the call tree for every
   function in it, without loading or running any of it.
-- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL)`:
+- `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL)`:
   builds the call tree of a Shiny app object by inspecting a
   `shiny.appobj`’s server function and its enclosing environment.
 - [`print.call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/print.call_stack.md):
@@ -133,6 +135,14 @@ The three tree builders also take `exclude`, a character vector of
 function names to drop, such as a logging helper that appears under
 every node. Each dropped function’s children are spliced up into its
 place.
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+and
+[`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+also take `prune` (drop a function and its subtree), `keep` (regular
+expressions to keep), and `max_depth`;
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+adds `include_ns` (show calls to other packages) and `include_defaults`
+(read default argument values).
 
 See
 [`vignette("stackcallr")`](https://mjfrigaard.github.io/stackcallr/articles/stackcallr.md)

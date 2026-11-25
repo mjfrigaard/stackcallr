@@ -7,9 +7,9 @@
 <title>Statically Inspect and Visualize the Call Tree of a Function • stackcallr</title>
 <script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/IBM_Plex_Sans-0.4.10/font.css" rel="stylesheet">
-<link href="deps/IBM_Plex_Mono-0.4.10/font.css" rel="stylesheet">
-<link href="deps/IBM_Plex_Sans_Condensed-0.4.10/font.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/IBM_Plex_Sans-0.5.0/font.css" rel="stylesheet">
+<link href="deps/IBM_Plex_Mono-0.5.0/font.css" rel="stylesheet">
+<link href="deps/IBM_Plex_Sans_Condensed-0.5.0/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Statically Inspect and Visualize the Call Tree of a Function">
@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">stackcallr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,7 +118,7 @@
 <div class="section level2">
 <h2 id="shiny-module-trees">Shiny module trees<a class="anchor" aria-label="anchor" href="#shiny-module-trees"></a>
 </h2>
-<p><code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> build the same kind of tree for a Shiny app, either from a directory of <code>.R</code> files on disk or from a <code>shiny.appobj</code>. Both take a <code>modules_only</code> argument that prunes the tree down to functions calling <code>NS()</code> or <code>moduleServer()</code>. Plain wrapper functions are spliced out, so the modules underneath them stay visible:</p>
+<p><code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> build the same kind of tree for a Shiny app, either from a directory of <code>.R</code> files on disk or from a <code>shiny.appobj</code>. Both take a <code>modules_only</code> argument that prunes the tree down to the functions <code>root</code> calls plus functions calling <code>NS()</code> or <code>moduleServer()</code>. Deeper wrapper functions are spliced out, so the modules underneath them stay visible:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">app_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"app"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">app_dir</span><span class="op">)</span></span>
@@ -139,8 +139,10 @@
 <span></span>
 <span><span class="fu"><a href="reference/call_tree_dir.html">call_tree_dir</a></span><span class="op">(</span><span class="va">app_dir</span>, root <span class="op">=</span> <span class="st">"launch"</span>, modules_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─launch</span></span>
-<span><span class="co">#&gt; ├─mod_a_ui</span></span>
-<span><span class="co">#&gt; └─mod_a_server</span></span></code></pre></div>
+<span><span class="co">#&gt; ├─█─app_ui</span></span>
+<span><span class="co">#&gt; │ └─mod_a_ui</span></span>
+<span><span class="co">#&gt; └─█─app_server</span></span>
+<span><span class="co">#&gt;   └─mod_a_server</span></span></code></pre></div>
 <p>Neither function requires shiny to be installed for <code>stackcallr</code> itself to work; shiny is in <code>Suggests</code>, needed only if you’re building a <code>shiny.appobj</code> to pass in.</p>
 </div>
 <div class="section level2">
@@ -150,13 +152,13 @@
 <li>
 <code>call_stack(fn, max_depth = Inf, exclude = NULL)</code>: the main entry point. Resolves <code>fn</code> to a function, then recursively walks its body via <code><a href="https://rdrr.io/pkg/codetools/man/findGlobals.html" class="external-link">codetools::findGlobals()</a></code>, following S3 dispatch where it finds <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> calls.</li>
 <li>
-<code>call_tree_dir(path, root, modules_only = FALSE, exclude = NULL)</code>: parses a directory of <code>.R</code> files and builds the call tree for every function in it, without loading or running any of it.</li>
+<code>call_tree_dir(path, root, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL, include_ns = NULL, include_defaults = FALSE)</code>: parses a directory of <code>.R</code> files and builds the call tree for every function in it, without loading or running any of it.</li>
 <li>
-<code>call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL)</code>: builds the call tree of a Shiny app object by inspecting a <code>shiny.appobj</code>’s server function and its enclosing environment.</li>
+<code>call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL)</code>: builds the call tree of a Shiny app object by inspecting a <code>shiny.appobj</code>’s server function and its enclosing environment.</li>
 <li>
 <code><a href="reference/print.call_stack.html">print.call_stack()</a></code>: renders the tree returned by any of the three, in the style of <code>lobstr::ast()</code>.</li>
 </ul>
-<p>The three tree builders also take <code>exclude</code>, a character vector of function names to drop, such as a logging helper that appears under every node. Each dropped function’s children are spliced up into its place.</p>
+<p>The three tree builders also take <code>exclude</code>, a character vector of function names to drop, such as a logging helper that appears under every node. Each dropped function’s children are spliced up into its place. <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> also take <code>prune</code> (drop a function and its subtree), <code>keep</code> (regular expressions to keep), and <code>max_depth</code>; <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> adds <code>include_ns</code> (show calls to other packages) and <code>include_defaults</code> (read default argument values).</p>
 <p>See <code><a href="articles/stackcallr.html">vignette("stackcallr")</a></code> for how <code><a href="reference/call_stack.html">call_stack()</a></code> resolves a function, and <code><a href="articles/shiny-modules.html">vignette("shiny-modules")</a></code> for <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code>.</p>
 </div>
 </div>

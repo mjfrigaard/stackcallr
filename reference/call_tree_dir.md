@@ -18,7 +18,17 @@ without installing or sourcing it first.
 ## Usage
 
 ``` r
-call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
+call_tree_dir(
+  path = "R",
+  root,
+  modules_only = FALSE,
+  exclude = NULL,
+  max_depth = Inf,
+  keep = NULL,
+  prune = NULL,
+  include_ns = NULL,
+  include_defaults = FALSE
+)
 ```
 
 ## Arguments
@@ -35,8 +45,9 @@ call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
 
 - modules_only:
 
-  Logical. When `TRUE`, prune the tree to `root` plus functions that
-  call [`shiny::NS()`](https://rdrr.io/pkg/shiny/man/NS.html) or
+  Logical. When `TRUE`, prune the tree to `root`, the functions `root`
+  calls directly, and functions that call
+  [`shiny::NS()`](https://rdrr.io/pkg/shiny/man/NS.html) or
   [`shiny::moduleServer()`](https://rdrr.io/pkg/shiny/man/moduleServer.html)
   (Shiny modules); everything else is spliced out, promoting its
   children so modules reached through a non-module wrapper function stay
@@ -51,10 +62,56 @@ call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
   `modules_only`. The root is never dropped. Default `NULL`, which drops
   nothing.
 
+- max_depth:
+
+  Number of levels to show below `root`. Default `Inf`, which shows the
+  whole tree; `1` shows only the functions `root` calls. Counted after
+  `modules_only`, `exclude`, `prune`, and `keep` are applied.
+
+- keep:
+
+  Character vector of regular expressions, e.g. `"^mod_counts_"`. When
+  given, the tree is trimmed to nodes whose name matches one of them
+  (with their full subtrees) plus the nodes on the path from `root` down
+  to each match. Use `"^name$"` for an exact name. Default `NULL`, which
+  keeps everything.
+
+- prune:
+
+  Character vector of function names to drop together with everything
+  below them. Unlike `exclude`, children are not spliced up. Default
+  `NULL`, which drops nothing.
+
+- include_ns:
+
+  Character vector of package names, e.g. `c("shiny", "bslib")`. Calls
+  to functions exported by these packages (bare, as `pkg::fun()`, or
+  `pkg:::fun()`) are shown as nodes, nested by how the calls are
+  written: `shinyApp(ui = app_ui, server = app_server)` puts `app_ui`
+  and `app_server` under `shinyApp`. External functions are not followed
+  into their own source, and syntax such as braces, `<-`, or `if` is
+  never shown (so `"base"` is usable). The packages must be installed.
+  Default `NULL`, which shows only locally-defined functions.
+
+- include_defaults:
+
+  Logical. When `TRUE`, calls in default argument values
+  (`function(dir = util_dir())`) are included alongside calls in the
+  body. Default `FALSE`.
+
 ## Value
 
 An object of class `call_stack` (see
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)).
+
+## Details
+
+When `modules_only = TRUE`, the functions `root` calls directly (such as
+`app_ui()` and `app_server()`) are always kept, so UI and server modules
+stay grouped under them.
+
+A function defined more than once in `path` raises a warning naming the
+files; the definition parsed last (files in alphabetical order) is used.
 
 ## See also
 
@@ -68,5 +125,7 @@ if (FALSE) { # \dontrun{
 call_tree_dir("R", root = "launch_app")
 call_tree_dir("R", root = "launch_app", modules_only = TRUE)
 call_tree_dir("R", root = "launch_app", exclude = "logr_msg")
+call_tree_dir("R", root = "nav_ui", keep = "^mod_counts_")
+call_tree_dir("R", root = "launch_app", include_ns = "shiny", max_depth = 2)
 } # }
 ```
