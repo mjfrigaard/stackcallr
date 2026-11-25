@@ -10,7 +10,10 @@ call_tree_app(
   ui_fun = NULL,
   server_fun = NULL,
   modules_only = FALSE,
-  exclude = NULL
+  exclude = NULL,
+  max_depth = Inf,
+  keep = NULL,
+  prune = NULL
 )
 }
 \arguments{
@@ -38,6 +41,14 @@ environment.}
 \item{modules_only}{Logical; see \code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{FALSE}.}
 
 \item{exclude}{Character vector; see \code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{NULL}.}
+
+\item{max_depth}{Number of levels below the root; see \code{\link[=call_tree_dir]{call_tree_dir()}}.
+Default \code{Inf}.}
+
+\item{keep}{Character vector of regular expressions; see
+\code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{NULL}.}
+
+\item{prune}{Character vector; see \code{\link[=call_tree_dir]{call_tree_dir()}}. Default \code{NULL}.}
 }
 \value{
 An object of class \code{call_stack} (see \code{\link[=call_stack]{call_stack()}}).

@@ -94,3 +94,40 @@ test_that("exclude removes named functions from the tree", {
   expect_false("a_helper" %in% all_names(tree))
   expect_true("mod_a_server" %in% all_names(tree))
 })
+
+test_that("modules_only keeps the ui and server wrappers under the root", {
+  wrap_ui <- function() shiny::fluidPage(mod_a_ui("a"))
+  wrap_server <- function(input, output, session) {
+    mod_a_server("a")
+    a_helper(42)
+  }
+  app <- shiny::shinyApp(ui = wrap_ui, server = wrap_server)
+
+  tree <- call_tree_app(app, modules_only = TRUE)
+
+  names <- vapply(tree$calls, `[[`, character(1), "name")
+  expect_setequal(names, c("wrap_ui", "wrap_server"))
+  server_node <- tree$calls[[which(names == "wrap_server")]]
+  expect_equal(vapply(server_node$calls, `[[`, character(1), "name"), "mod_a_server")
+})
+
+test_that("max_depth, keep, and prune trim an app tree", {
+  helper_server <- function(input, output, session) {
+    mod_a_server("a")
+    a_helper(42)
+  }
+  app <- shiny::shinyApp(ui = function() shiny::fluidPage(), server = helper_server)
+  all_names <- function(node) c(node$name, unlist(lapply(node$calls, all_names)))
+
+  shallow <- call_tree_app(app, max_depth = 1)
+  expect_true(all(vapply(shallow$calls, function(x) length(x$calls) == 0, logical(1))))
+
+  kept <- call_tree_app(app, keep = "^mod_")
+  expect_true("mod_a_server" %in% all_names(kept))
+  expect_false("a_helper" %in% all_names(kept))
+
+  pruned <- call_tree_app(app, prune = "helper_server")
+  expect_false(any(c("helper_server", "mod_a_server", "a_helper") %in% all_names(pruned)))
+
+  expect_error(call_tree_app(app, max_depth = -1), "`max_depth`")
+})

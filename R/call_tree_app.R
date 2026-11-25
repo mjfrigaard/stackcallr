@@ -37,6 +37,11 @@
 #'   environment.
 #' @param modules_only Logical; see [call_tree_dir()]. Default `FALSE`.
 #' @param exclude Character vector; see [call_tree_dir()]. Default `NULL`.
+#' @param max_depth Number of levels below the root; see [call_tree_dir()].
+#'   Default `Inf`.
+#' @param keep Character vector of regular expressions; see
+#'   [call_tree_dir()]. Default `NULL`.
+#' @param prune Character vector; see [call_tree_dir()]. Default `NULL`.
 #'
 #' @return An object of class `call_stack` (see [call_stack()]).
 #'
@@ -55,10 +60,11 @@ call_tree_app <- function(app,
                            ui_fun = NULL,
                            server_fun = NULL,
                            modules_only = FALSE,
-                           exclude = NULL) {
-  stopifnot(
-    "`exclude` must be NULL or a character vector" = is.null(exclude) || is.character(exclude)
-  )
+                           exclude = NULL,
+                           max_depth = Inf,
+                           keep = NULL,
+                           prune = NULL) {
+  check_trim_args(exclude, max_depth, keep, prune)
   if (inherits(app, "ShinyAppHandle")) {
     stop(
       "`app` is a ShinyAppHandle, returned by shiny::startApp(). ",
@@ -124,11 +130,10 @@ call_tree_app <- function(app,
 
   tree <- build_tree(app_fun, call_graph)
 
-  if (modules_only) {
-    is_module <- vapply(known_fns, function(f) uses_ns(body(f)), logical(1))
-    tree$calls <- prune_children(tree$calls, names(which(is_module)))
+  modules <- if (modules_only) {
+    names(which(vapply(known_fns, function(f) uses_ns(body(f)), logical(1))))
   }
-  tree$calls <- splice_out(tree$calls, exclude)
+  tree <- trim_tree(tree, modules, exclude, max_depth, keep, prune)
 
   class(tree) <- "call_stack"
   tree

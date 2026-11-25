@@ -4,7 +4,17 @@
 \alias{call_tree_dir}
 \title{Build the call tree of every function defined in a directory of R files}
 \usage{
-call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
+call_tree_dir(
+  path = "R",
+  root,
+  modules_only = FALSE,
+  exclude = NULL,
+  max_depth = Inf,
+  keep = NULL,
+  prune = NULL,
+  include_ns = NULL,
+  include_defaults = FALSE
+)
 }
 \arguments{
 \item{path}{Character scalar; directory containing \code{.R} files. Default
@@ -14,9 +24,10 @@ call_tree_dir(path = "R", root, modules_only = FALSE, exclude = NULL)
 Must be one of the top-level functions found in \code{path}; otherwise
 \code{call_tree_dir()} errors rather than returning an empty tree.}
 
-\item{modules_only}{Logical. When \code{TRUE}, prune the tree to \code{root} plus
-functions that call \code{\link[shiny:NS]{shiny::NS()}} or \code{\link[shiny:moduleServer]{shiny::moduleServer()}} (Shiny
-modules); everything else is spliced out, promoting its children so
+\item{modules_only}{Logical. When \code{TRUE}, prune the tree to \code{root}, the
+functions \code{root} calls directly, and functions that call \code{\link[shiny:NS]{shiny::NS()}}
+or \code{\link[shiny:moduleServer]{shiny::moduleServer()}} (Shiny modules); everything else is spliced
+out, promoting its children so
 modules reached through a non-module wrapper function stay visible.
 Default \code{FALSE}, which keeps every locally-defined function reachable
 from \code{root}.}
@@ -26,6 +37,33 @@ e.g. a logging helper such as \code{"logr_msg"} that appears under every
 node. A dropped function's children are spliced up into its place, as
 with \code{modules_only}. The root is never dropped. Default \code{NULL}, which
 drops nothing.}
+
+\item{max_depth}{Number of levels to show below \code{root}. Default \code{Inf},
+which shows the whole tree; \code{1} shows only the functions \code{root} calls.
+Counted after \code{modules_only}, \code{exclude}, \code{prune}, and \code{keep} are
+applied.}
+
+\item{keep}{Character vector of regular expressions, e.g.
+\code{"^mod_counts_"}. When given, the tree is trimmed to nodes whose name
+matches one of them (with their full subtrees) plus the nodes on the
+path from \code{root} down to each match. Use \code{"^name$"} for an exact name.
+Default \code{NULL}, which keeps everything.}
+
+\item{prune}{Character vector of function names to drop together with
+everything below them. Unlike \code{exclude}, children are not spliced up.
+Default \code{NULL}, which drops nothing.}
+
+\item{include_ns}{Character vector of package names, e.g.
+\code{c("shiny", "bslib")}. Calls to functions exported by these packages
+(bare, as \code{pkg::fun()}, or \code{pkg:::fun()}) are shown as nodes, nested
+by how the calls are written: \code{shinyApp(ui = app_ui, server = app_server)} puts \code{app_ui} and \code{app_server} under \code{shinyApp}. External
+functions are not followed into their own source, and syntax such as
+braces, \verb{<-}, or \code{if} is never shown (so \code{"base"} is usable). The packages
+must be installed. Default \code{NULL}, which shows only locally-defined functions.}
+
+\item{include_defaults}{Logical. When \code{TRUE}, calls in default argument
+values (\verb{function(dir = util_dir())}) are included alongside calls in
+the body. Default \code{FALSE}.}
 }
 \value{
 An object of class \code{call_stack} (see \code{\link[=call_stack]{call_stack()}}).
@@ -43,11 +81,21 @@ R's own namespace lookup, \code{call_tree_dir()} never loads or runs the
 scanned files. That makes it usable on a package's \verb{R/} directory, or a
 Shiny app's source, without installing or sourcing it first.
 }
+\details{
+When \code{modules_only = TRUE}, the functions \code{root} calls directly (such as
+\code{app_ui()} and \code{app_server()}) are always kept, so UI and server modules
+stay grouped under them.
+
+A function defined more than once in \code{path} raises a warning naming the
+files; the definition parsed last (files in alphabetical order) is used.
+}
 \examples{
 \dontrun{
 call_tree_dir("R", root = "launch_app")
 call_tree_dir("R", root = "launch_app", modules_only = TRUE)
 call_tree_dir("R", root = "launch_app", exclude = "logr_msg")
+call_tree_dir("R", root = "nav_ui", keep = "^mod_counts_")
+call_tree_dir("R", root = "launch_app", include_ns = "shiny", max_depth = 2)
 }
 
 }
