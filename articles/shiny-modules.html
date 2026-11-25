@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stackcallr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -388,7 +388,10 @@ unevaluated body are kept.</li>
 <li>Each body is walked recursively for references to the other
 collected names. Both direct calls (<code>fun()</code>) and bare
 references (<code>fun</code>) count, so a function passed as an argument
-still registers as an edge.</li>
+still registers as an edge. A bare name that the function binds itself
+(a parameter, a variable assigned with <code>&lt;-</code> or
+<code>=</code>, or a <code>for</code> loop variable) is skipped, because
+it refers to that value and not the function.</li>
 <li>The tree is built depth-first from <code>root</code>, skipping any
 name already on the current path, so recursive or mutually recursive
 functions don’t loop forever.</li>

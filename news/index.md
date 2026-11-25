@@ -1,5 +1,18 @@
 # Changelog
 
+## stackcallr 0.2.1
+
+### Bug fixes
+
+- [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+  and
+  [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
+  no longer draw an edge when a parameter or local variable shares a
+  function’s name. In `function(savings_rate) income * savings_rate`,
+  the bare `savings_rate` refers to the argument, not the
+  `savings_rate()` function. Calls in call position (`savings_rate()`)
+  still count.
+
 ## stackcallr 0.2.0
 
 ### New features
