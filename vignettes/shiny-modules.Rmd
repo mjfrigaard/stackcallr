@@ -279,7 +279,10 @@ parsed source:
    are kept.
 3. Each body is walked recursively for references to the other collected
    names. Both direct calls (`fun()`) and bare references (`fun`) count,
-   so a function passed as an argument still registers as an edge.
+   so a function passed as an argument still registers as an edge. A
+   bare name that the function binds itself (a parameter, a variable
+   assigned with `<-` or `=`, or a `for` loop variable) is skipped,
+   because it refers to that value and not the function.
 4. The tree is built depth-first from `root`, skipping any name already
    on the current path, so recursive or mutually recursive functions
    don't loop forever.

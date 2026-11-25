@@ -125,7 +125,7 @@ call_tree_app <- function(app,
 
   for (nm in setdiff(known_names, app_fun)) {
     fn <- known_fns[[nm]]
-    call_graph[[nm]] <- intersect(find_calls(body(fn), known_names), known_names)
+    call_graph[[nm]] <- intersect(find_calls(body(fn), known_names, c(names(formals(fn)), local_names(body(fn)))), known_names)
   }
 
   tree <- build_tree(app_fun, call_graph)

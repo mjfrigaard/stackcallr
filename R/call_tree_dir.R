@@ -109,7 +109,7 @@ call_tree_dir <- function(path = "R",
     if (include_defaults) {
       exprs <- c(as.list(def[[2]]), exprs)
     }
-    call_items(exprs, known_names, include_ns, ext_names)
+    call_items(exprs, known_names, include_ns, ext_names, local_names(def))
   })
 
   tree <- build_tree(root, call_graph)
@@ -194,9 +194,12 @@ extract_func_def <- function(expr) {
 #'
 #' Recursively walks `expr` and collects the names of any functions that
 #' appear as either direct calls (`fun()`) or bare name references (`fun`).
+#' A bare name is skipped when it is in `bound` (by default, the names
+#' bound inside `expr`; see `local_names()`), since it then refers to a
+#' parameter or variable, not the function.
 #'
 #' @noRd
-find_calls <- function(expr, known_names) {
+find_calls <- function(expr, known_names, bound = local_names(expr)) {
   found <- character(0)
   if (is.call(expr)) {
     fn <- expr[[1]]
@@ -207,15 +210,46 @@ find_calls <- function(expr, known_names) {
       }
     }
     for (i in seq_along(expr)) {
-      found <- c(found, find_calls(expr[[i]], known_names))
+      found <- c(found, find_calls(expr[[i]], known_names, bound))
     }
   } else if (is.name(expr)) {
     nm <- as.character(expr)
-    if (nm %in% known_names) {
+    if (nm %in% known_names && !nm %in% bound) {
       found <- c(found, nm)
     }
   }
   unique(found)
+}
+
+#' Names bound inside an expression
+#'
+#' Collects the parameters of every `function()` in `expr`, the targets of
+#' `<-` and `=` assignments, and `for` loop variables. Scopes are not
+#' tracked separately, so a name bound anywhere in `expr` counts for all of
+#' it. Calls in call position (`fun()`) are unaffected, because R skips
+#' non-function bindings when it looks up a function to call.
+#'
+#' @noRd
+local_names <- function(expr) {
+  if (!is.call(expr)) {
+    return(character(0))
+  }
+  out <- character(0)
+  fn <- expr[[1]]
+  if (is.name(fn)) {
+    op <- as.character(fn)
+    if (op == "function") {
+      out <- names(expr[[2]])
+    } else if (op %in% c("<-", "=", "for") && is.name(expr[[2]])) {
+      out <- as.character(expr[[2]])
+    }
+  }
+  for (i in seq_along(expr)) {
+    if (!identical(expr[[i]], quote(expr = ))) {
+      out <- c(out, local_names(expr[[i]]))
+    }
+  }
+  unique(out)
 }
 
 #' Check whether an expression contains Shiny module identifiers
@@ -262,29 +296,30 @@ uses_ns <- function(expr) {
 #' nesting follows how the calls are written.
 #'
 #' @noRd
-call_items <- function(exprs, known_names, include_ns = NULL, ext_names = character(0)) {
+call_items <- function(exprs, known_names, include_ns = NULL, ext_names = character(0),
+                       bound = character(0)) {
   items <- list()
   for (i in seq_along(exprs)) {
     if (identical(exprs[[i]], quote(expr = ))) {
       next
     }
-    items <- c(items, expr_items(exprs[[i]], known_names, include_ns, ext_names))
+    items <- c(items, expr_items(exprs[[i]], known_names, include_ns, ext_names, bound))
   }
   merge_items(items)
 }
 
 #' @noRd
-expr_items <- function(expr, known_names, include_ns, ext_names) {
+expr_items <- function(expr, known_names, include_ns, ext_names, bound) {
   if (is.name(expr)) {
     nm <- as.character(expr)
-    return(if (nm %in% known_names) list(nm) else list())
+    return(if (nm %in% known_names && !nm %in% bound) list(nm) else list())
   }
   if (!is.call(expr)) {
     return(list())
   }
 
   fn <- expr[[1]]
-  args <- call_items(as.list(expr)[-1], known_names, include_ns, ext_names)
+  args <- call_items(as.list(expr)[-1], known_names, include_ns, ext_names, bound)
 
   if (is.call(fn) && length(fn) == 3 && is.name(fn[[1]]) && as.character(fn[[1]]) %in% c("::", ":::")) {
     if (as.character(fn[[2]]) %in% include_ns) {
@@ -302,7 +337,7 @@ expr_items <- function(expr, known_names, include_ns, ext_names) {
     }
     return(args)
   }
-  c(expr_items(fn, known_names, include_ns, ext_names), args)
+  c(expr_items(fn, known_names, include_ns, ext_names, bound), args)
 }
 
 #' Deduplicate call graph items by name, merging repeated external calls

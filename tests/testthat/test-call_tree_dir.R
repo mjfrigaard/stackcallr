@@ -361,3 +361,40 @@ test_that("call_tree_dir include_ns = 'base' skips syntax and control flow", {
   expect_equal(child_names(tree), c("options", "g"))
   expect_equal(child_names(tree$calls[[1]]), "g")
 })
+
+test_that("call_tree_dir ignores parameters and local variables named like functions", {
+  dir <- withr::local_tempdir()
+  write_r_files(dir, list("f.R" = c(
+    "wealth <- function(income, savings_rate) income * savings_rate",
+    "savings_rate <- function() 0.1",
+    "version <- function() { scc <- find_scc(); run(scc) }",
+    "scc <- function() 1",
+    "find_scc <- function() 1",
+    "loop <- function(xs) for (scc in xs) print(scc)",
+    "both <- function(savings_rate) savings_rate()"
+  )))
+
+  expect_length(call_tree_dir(dir, root = "wealth")$calls, 0)
+  expect_equal(child_names(call_tree_dir(dir, root = "version")), "find_scc")
+  expect_length(call_tree_dir(dir, root = "loop")$calls, 0)
+  expect_equal(child_names(call_tree_dir(dir, root = "both")), "savings_rate")
+})
+
+test_that("call_tree_dir still counts bare function references", {
+  dir <- withr::local_tempdir()
+  write_r_files(dir, list("f.R" = c(
+    "launch <- function() shinyApp(app_ui, app_server)",
+    "app_ui <- function() 1",
+    "app_server <- function(input, output) lapply(1:2, helper)",
+    "helper <- function(x) x"
+  )))
+
+  tree <- call_tree_dir(dir, root = "launch")
+  expect_equal(child_names(tree), c("app_ui", "app_server"))
+  expect_equal(child_names(tree$calls[[2]]), "helper")
+})
+
+test_that("find_calls skips names bound inside the function", {
+  expr <- parse(text = "function(a) { b <- 1; a; b; c; d() }")[[1]]
+  expect_setequal(find_calls(expr, c("a", "b", "c", "d")), c("c", "d"))
+})
