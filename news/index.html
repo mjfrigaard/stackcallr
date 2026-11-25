@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stackcallr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,8 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/shiny-modules.html">Shiny module trees</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/r6.html">R6 classes</a></li>
+    <li><a class="dropdown-item" href="../articles/shiny-modules.html">Shiny module trees</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -42,6 +43,18 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="stackcallr-030">stackcallr 0.3.0<a class="anchor" aria-label="anchor" href="#stackcallr-030"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h3>
+<ul><li>
+<code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> reads R6 classes. Each method is a node named <code>Class$method</code>, with <code>initialize</code> shown as <code>Class$new</code>. <code>Class$new()</code>, <code>self$m()</code>, <code>private$m()</code>, <code>super$m()</code>, and <code>x$m()</code> on a local <code>x &lt;- Class$new()</code> are followed. Methods can be roots (<code>root = "ModInputs$ui"</code>). With <code>modules_only</code>, a class whose methods call <code><a href="https://rdrr.io/pkg/shiny/man/NS.html" class="external-link">NS()</a></code> or <code><a href="https://rdrr.io/pkg/shiny/man/moduleServer.html" class="external-link">moduleServer()</a></code> counts as a module.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-3-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-3-0"></a></h3>
+<ul><li>The name after <code>$</code> or <code>@</code> is no longer read as a call: <code>result$class_diffs</code> doesn’t draw an edge to a <code>class_diffs()</code> function.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="stackcallr-021">stackcallr 0.2.1<a class="anchor" aria-label="anchor" href="#stackcallr-021"></a></h2>
 <div class="section level3">

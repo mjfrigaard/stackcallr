@@ -2,7 +2,8 @@
 
 `call_tree_dir()` parses every `.R` file in `path` without evaluating
 any of it, extracts each top-level function definition
-(`name <- function(...) ...`), and builds the call graph among those
+(`name <- function(...) ...`) and the methods of each R6 class
+(`Name <- R6Class(...)`), and builds the call graph among those
 locally-defined functions. The result is the tree of calls reachable
 from `root`, in the same shape
 [`call_stack()`](https://mjfrigaard.github.io/stackcallr/reference/call_stack.md)
@@ -39,8 +40,9 @@ call_tree_dir(
 
 - root:
 
-  Character scalar; name of the function to root the tree at. Must be
-  one of the top-level functions found in `path`; otherwise
+  Character scalar; name of the function to root the tree at, or an R6
+  method written as `"Class$method"` (`"Class$new"` for `initialize`).
+  Must be one of the functions found in `path`; otherwise
   `call_tree_dir()` errors rather than returning an empty tree.
 
 - modules_only:
@@ -109,6 +111,15 @@ An object of class `call_stack` (see
 When `modules_only = TRUE`, the functions `root` calls directly (such as
 `app_ui()` and `app_server()`) are always kept, so UI and server modules
 stay grouped under them.
+
+R6 methods are nodes named `Class$method`, with `initialize` shown as
+`Class$new`. `Class$new()` calls that node. `self$m()`, `private$m()`,
+and `super$m()` resolve within the class, following `inherit`. A
+variable assigned `Class$new(...)` inside a function
+(`x <- Class$new()`) resolves `x$m()` to `Class$m`. With `modules_only`,
+a class with any method that calls `NS()` or `moduleServer()` is a
+module, and its `$new` and public methods are kept. The name after `$`
+is never read as a call to a function of the same name.
 
 A function defined more than once in `path` raises a warning naming the
 files; the definition parsed last (files in alphabetical order) is used.

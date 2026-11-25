@@ -2,9 +2,10 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  r6: r6.html
   shiny-modules: shiny-modules.html
   stackcallr: stackcallr.html
-last_built: 2026-11-25T14:24Z
+last_built: 2026-11-25T15:26Z
 urls:
   reference: https://mjfrigaard.github.io/stackcallr/reference
   article: https://mjfrigaard.github.io/stackcallr/articles

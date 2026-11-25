@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">stackcallr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/shiny-modules.html">Shiny module trees</a></li>
+<li><a class="dropdown-item" href="articles/r6.html">R6 classes</a></li>
+    <li><a class="dropdown-item" href="articles/shiny-modules.html">Shiny module trees</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -158,7 +159,7 @@
 <li>
 <code><a href="reference/print.call_stack.html">print.call_stack()</a></code>: renders the tree returned by any of the three, in the style of <code>lobstr::ast()</code>.</li>
 </ul>
-<p>The three tree builders also take <code>exclude</code>, a character vector of function names to drop, such as a logging helper that appears under every node. Each dropped function’s children are spliced up into its place. <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> also take <code>prune</code> (drop a function and its subtree), <code>keep</code> (regular expressions to keep), and <code>max_depth</code>; <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> adds <code>include_ns</code> (show calls to other packages) and <code>include_defaults</code> (read default argument values).</p>
+<p>The three tree builders also take <code>exclude</code>, a character vector of function names to drop, such as a logging helper that appears under every node. Each dropped function’s children are spliced up into its place. <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code> also take <code>prune</code> (drop a function and its subtree), <code>keep</code> (regular expressions to keep), and <code>max_depth</code>; <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> adds <code>include_ns</code> (show calls to other packages) and <code>include_defaults</code> (read default argument values). <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> also reads R6 classes and names each method <code>Class$method</code>.</p>
 <p>See <code><a href="articles/stackcallr.html">vignette("stackcallr")</a></code> for how <code><a href="reference/call_stack.html">call_stack()</a></code> resolves a function, and <code><a href="articles/shiny-modules.html">vignette("shiny-modules")</a></code> for <code><a href="reference/call_tree_dir.html">call_tree_dir()</a></code> and <code><a href="reference/call_tree_app.html">call_tree_app()</a></code>.</p>
 </div>
 </div>

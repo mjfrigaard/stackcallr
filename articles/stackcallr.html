@@ -12,7 +12,9 @@
 <link href="../deps/IBM_Plex_Sans_Condensed-0.5.0/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to stackcallr">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="stackcallr_files/libs/quarto-html/popper.min.js"></script><script src="stackcallr_files/libs/quarto-html/tippy.umd.min.js"></script><link href="stackcallr_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="stackcallr_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to stackcallr">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stackcallr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +38,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/shiny-modules.html">Shiny module trees</a></li>
+<li><a class="dropdown-item" href="../articles/r6.html">R6 classes</a></li>
+    <li><a class="dropdown-item" href="../articles/shiny-modules.html">Shiny module trees</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -58,45 +61,37 @@
 
 
   </div>
-</nav><div class="container template-article">
-
-
-
-
+</nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Introduction to stackcallr</h1>
-            
-      
 
-      <div class="d-none name"><code>stackcallr.Rmd</code></div>
+
+
+
+
+      <div class="d-none name"><code></code></div>
     </div>
 
-    
-    
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+
+
+
+
+
+    <div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mjfrigaard.github.io/stackcallr/">stackcallr</a></span><span class="op">)</span></span></code></pre></div>
-<div class="section level2">
-<h2 id="why-stackcallr">Why stackcallr<a class="anchor" aria-label="anchor" href="#why-stackcallr"></a>
-</h2>
-<p>When you’re reading unfamiliar code, one of the first questions is:
-what does this function call? For a simple function you can just read
-the body. For an S3 generic like <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, the body is a
-single line, <code>UseMethod("mean")</code>, and the real work happens
-in a method you’d have to go find yourself.</p>
-<p><code>stackcallr</code> answers that question directly. Give
-<code><a href="../reference/call_stack.html">call_stack()</a></code> the name of a function, and it returns the
-tree of every function it calls, the functions those call, and so on,
-resolving S3 dispatch along the way.</p>
 </div>
-<div class="section level2">
-<h2 id="the-basic-call">The basic call<a class="anchor" aria-label="anchor" href="#the-basic-call"></a>
+<section class="level2"><h2 id="why-stackcallr">Why stackcallr<a class="anchor" aria-label="anchor" href="#why-stackcallr"></a>
 </h2>
-<p><code><a href="../reference/call_stack.html">call_stack()</a></code> takes a single string naming a function,
-either bare (<code>"mean"</code>) or namespaced
-(<code>"pkg::fun"</code>, <code>"pkg:::internal_fun"</code>):</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>When you’re reading unfamiliar code, one of the first questions is: what does this function call? For a simple function you can just read the body. For an S3 generic like <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, the body is a single line, <code>UseMethod("mean")</code>, and the real work happens in a method you’d have to go find yourself.</p>
+<p><code>stackcallr</code> answers that question directly. Give <code><a href="../reference/call_stack.html">call_stack()</a></code> the name of a function, and it returns the tree of every function it calls, the functions those call, and so on, resolving S3 dispatch along the way.</p>
+</section><section class="level2"><h2 id="the-basic-call">The basic call<a class="anchor" aria-label="anchor" href="#the-basic-call"></a>
+</h2>
+<p><code><a href="../reference/call_stack.html">call_stack()</a></code> takes a single string naming a function, either bare (<code>"mean"</code>) or namespaced (<code>"pkg::fun"</code>, <code>"pkg:::internal_fun"</code>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"mean.default"</span>, max_depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─mean.default</span></span>
 <span><span class="co">#&gt; ├─.Internal</span></span>
@@ -114,17 +109,13 @@ either bare (<code>"mean"</code>) or namespaced
 <span><span class="co">#&gt; ├─stop</span></span>
 <span><span class="co">#&gt; ├─unique</span></span>
 <span><span class="co">#&gt; └─warning</span></span></code></pre></div>
-<p>The result is a <code>call_stack</code> object: a tree where each
-node has a <code>name</code> and a list of <code>calls</code> (its
-children). Printing it draws the tree.</p>
 </div>
-<div class="section level2">
-<h2 id="limiting-depth">Limiting depth<a class="anchor" aria-label="anchor" href="#limiting-depth"></a>
+<p>The result is a <code>call_stack</code> object: a tree where each node has a <code>name</code> and a list of <code>calls</code> (its children). Printing it draws the tree.</p>
+</section><section class="level2"><h2 id="limiting-depth">Limiting depth<a class="anchor" aria-label="anchor" href="#limiting-depth"></a>
 </h2>
-<p>Some call trees are deep. <code>max_depth</code> caps how many levels
-are followed. For <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">stats::sd()</a></code>, <code>max_depth = 1</code>
-returns only the functions <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code> calls directly:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>Some call trees are deep. <code>max_depth</code> caps how many levels are followed. For <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">stats::sd()</a></code>, <code>max_depth = 1</code> returns only the functions <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code> calls directly:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"stats::sd"</span>, max_depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─sd</span></span>
 <span><span class="co">#&gt; ├─as.double</span></span>
@@ -132,9 +123,10 @@ returns only the functions <code><a href="https://rdrr.io/r/stats/sd.html" class
 <span><span class="co">#&gt; ├─is.vector</span></span>
 <span><span class="co">#&gt; ├─sqrt</span></span>
 <span><span class="co">#&gt; └─var</span></span></code></pre></div>
-<p>Raising it to <code>2</code> expands each of those nodes one level
-further:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+</div>
+<p>Raising it to <code>2</code> expands each of those nodes one level further:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"stats::sd"</span>, max_depth <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─sd</span></span>
 <span><span class="co">#&gt; ├─as.double</span></span>
@@ -155,21 +147,13 @@ further:</p>
 <span><span class="co">#&gt;   ├─pmatch</span></span>
 <span><span class="co">#&gt;   ├─stop</span></span>
 <span><span class="co">#&gt;   └─stopifnot</span></span></code></pre></div>
-<p>The default, <code>max_depth = Inf</code>, follows every call all the
-way down. It stops only at primitives (functions with no R-level body to
-inspect) and at calls it has already followed once, so recursive or
-mutually recursive functions don’t loop forever.</p>
 </div>
-<div class="section level2">
-<h2 id="following-s3-dispatch">Following S3 dispatch<a class="anchor" aria-label="anchor" href="#following-s3-dispatch"></a>
+<p>The default, <code>max_depth = Inf</code>, follows every call all the way down. It stops only at primitives (functions with no R-level body to inspect) and at calls it has already followed once, so recursive or mutually recursive functions don’t loop forever.</p>
+</section><section class="level2"><h2 id="following-s3-dispatch">Following S3 dispatch<a class="anchor" aria-label="anchor" href="#following-s3-dispatch"></a>
 </h2>
-<p>Static analysis alone can’t tell you what
-<code>UseMethod("mean")</code> runs, since that depends on the class of
-the argument at call time. <code><a href="../reference/call_stack.html">call_stack()</a></code> handles this case
-directly. When a function’s body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, it
-looks up every method registered for that generic and follows each one,
-in place of a single unhelpful <code>UseMethod</code> leaf.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Static analysis alone can’t tell you what <code>UseMethod("mean")</code> runs, since that depends on the class of the argument at call time. <code><a href="../reference/call_stack.html">call_stack()</a></code> handles this case directly. When a function’s body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, it looks up every method registered for that generic and follows each one, in place of a single unhelpful <code>UseMethod</code> leaf.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"mean"</span>, max_depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; █─mean</span></span>
 <span><span class="co">#&gt; ├─mean.Date</span></span>
@@ -178,100 +162,195 @@ in place of a single unhelpful <code>UseMethod</code> leaf.</p>
 <span><span class="co">#&gt; ├─mean.POSIXct</span></span>
 <span><span class="co">#&gt; ├─mean.POSIXlt</span></span>
 <span><span class="co">#&gt; └─mean.quosure</span></span></code></pre></div>
-<p>Each <code>mean.*</code> entry above is a real method, resolved and
-ready to be expanded further with a larger <code>max_depth</code>.</p>
 </div>
-<div class="section level2">
-<h2 id="how-resolution-works">How resolution works<a class="anchor" aria-label="anchor" href="#how-resolution-works"></a>
+<p>Each <code>mean.*</code> entry above is a real method, resolved and ready to be expanded further with a larger <code>max_depth</code>.</p>
+</section><section class="level2"><h2 id="how-resolution-works">How resolution works<a class="anchor" aria-label="anchor" href="#how-resolution-works"></a>
 </h2>
-<p><code><a href="../reference/call_stack.html">call_stack()</a></code> never runs the function you point it at. It
-works entirely from source:</p>
-<ol style="list-style-type: decimal">
-<li>The named function is resolved to a closure via <code><a href="https://rdrr.io/r/base/get.html" class="external-link">get()</a></code> /
-<code><a href="https://rdrr.io/r/base/ns-reflect.html" class="external-link">getExportedValue()</a></code>.</li>
-<li>Its body is parsed with <code><a href="https://rdrr.io/pkg/codetools/man/findGlobals.html" class="external-link">codetools::findGlobals()</a></code> to
-list the functions it references, with R’s own syntax (<code>{</code>,
-<code>if</code>, <code>&lt;-</code>, <code>+</code>, …) filtered out,
-since those aren’t calls in any meaningful sense.</li>
-<li>Each referenced name is looked up in the function’s own lexical
-scope, the same place R itself would resolve it. That’s how calls to
-internal, unexported helpers are found.</li>
-<li>If the body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, the generic’s registered
-methods are found and substituted in for that call.</li>
-<li>The process repeats for every function found, down to
-<code>max_depth</code> or until a cycle is detected.</li>
-</ol>
-</div>
-<div class="section level2">
-<h2 id="what-it-cant-resolve">What it can’t resolve<a class="anchor" aria-label="anchor" href="#what-it-cant-resolve"></a>
+<p><code><a href="../reference/call_stack.html">call_stack()</a></code> never runs the function you point it at. It works entirely from source:</p>
+<ol type="1">
+<li>The named function is resolved to a closure via <code><a href="https://rdrr.io/r/base/get.html" class="external-link">get()</a></code> / <code><a href="https://rdrr.io/r/base/ns-reflect.html" class="external-link">getExportedValue()</a></code>.</li>
+<li>Its body is parsed with <code><a href="https://rdrr.io/pkg/codetools/man/findGlobals.html" class="external-link">codetools::findGlobals()</a></code> to list the functions it references, with R’s own syntax (<code>{</code>, <code>if</code>, <code>&lt;-</code>, <code>+</code>, …) filtered out, since those aren’t calls in any meaningful sense.</li>
+<li>Each referenced name is looked up in the function’s own lexical scope, the same place R itself would resolve it. That’s how calls to internal, unexported helpers are found.</li>
+<li>If the body calls <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code>, the generic’s registered methods are found and substituted in for that call.</li>
+<li>The process repeats for every function found, down to <code>max_depth</code> or until a cycle is detected.</li>
+</ol></section><section class="level2"><h2 id="what-it-cant-resolve">What it can’t resolve<a class="anchor" aria-label="anchor" href="#what-it-cant-resolve"></a>
 </h2>
-<p><code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> is the one form of dynamic dispatch
-<code><a href="../reference/call_stack.html">call_stack()</a></code> follows. Everything else that decides which
-function to run at call time stays unresolved, and shows up as a leaf
-rather than being expanded:</p>
+<p><code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> is the one form of dynamic dispatch <code><a href="../reference/call_stack.html">call_stack()</a></code> follows. Everything else that decides which function to run at call time stays unresolved, and shows up as a leaf rather than being expanded:</p>
 <ul>
 <li>
-<code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod()</a></code> calls, since the next method depends on
-the class vector in play at the time.</li>
+<code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod()</a></code> calls, since the next method depends on the class vector in play at the time.</li>
 <li>S4 and R6 dispatch.</li>
-<li>Functions named only as data, such as those passed to
-<code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>, <code><a href="https://rdrr.io/r/base/match.fun.html" class="external-link">match.fun()</a></code>, or
-<code><a href="https://rdrr.io/r/base/Recall.html" class="external-link">Recall()</a></code>.</li>
+<li>Functions named only as data, such as those passed to <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>, <code><a href="https://rdrr.io/r/base/match.fun.html" class="external-link">match.fun()</a></code>, or <code><a href="https://rdrr.io/r/base/Recall.html" class="external-link">Recall()</a></code>.</li>
 </ul>
-<p>A leaf in the printed tree means one of three things: a primitive, a
-cycle already followed, or a call that static analysis can’t see
-through.</p>
-</div>
-<div class="section level2">
-<h2 id="how-this-differs-from-lobstrcst">How this differs from <code>lobstr::cst()</code><a class="anchor" aria-label="anchor" href="#how-this-differs-from-lobstrcst"></a>
+<p>A leaf in the printed tree means one of three things: a primitive, a cycle already followed, or a call that static analysis can’t see through.</p>
+</section><section class="level2"><h2 id="how-this-differs-from-lobstrcst">How this differs from <code>lobstr::cst()</code>
+<a class="anchor" aria-label="anchor" href="#how-this-differs-from-lobstrcst"></a>
 </h2>
-<p>If the printed trees look familiar, that’s because the
-block-character style is the one <code>lobstr::ast()</code> uses. The
-resemblance stops at the drawing.</p>
-<p><code>lobstr::cst()</code> prints the <em>call stack tree</em> at the
-moment you call it: it walks <code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">sys.calls()</a></code>, the frames
-executing right now. You use it from inside running code, usually
-mid-debug after <code><a href="https://rdrr.io/r/base/browser.html" class="external-link">browser()</a></code> has dropped you at an error. It
-shows exactly one path: the sequence of calls that got you to that
-point. A real call stack is linear, so there are no branches to
-show.</p>
-<p><code><a href="../reference/call_stack.html">call_stack()</a></code> (and <code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> /
-<code><a href="../reference/call_tree_app.html">call_tree_app()</a></code>) work from the other direction. They never
-run the function. They parse its body and recursively expand everything
-it <em>could</em> call, including every branch. A generic contributes
-all of its <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch targets, not just the one
-method a particular run happened to hit. The result is a tree of
-possibilities, not a record of an execution.</p>
+<p>If the printed trees look familiar, that’s because the block-character style is the one <code>lobstr::ast()</code> uses. The resemblance stops at the drawing.</p>
+<p><code>lobstr::cst()</code> prints the <em>call stack tree</em> at the moment you call it: it walks <code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">sys.calls()</a></code>, the frames executing right now. You use it from inside running code, usually mid-debug after <code><a href="https://rdrr.io/r/base/browser.html" class="external-link">browser()</a></code> has dropped you at an error. It shows exactly one path: the sequence of calls that got you to that point. A real call stack is linear, so there are no branches to show.</p>
+<p><code><a href="../reference/call_stack.html">call_stack()</a></code> (and <code><a href="../reference/call_tree_dir.html">call_tree_dir()</a></code> / <code><a href="../reference/call_tree_app.html">call_tree_app()</a></code>) work from the other direction. They never run the function. They parse its body and recursively expand everything it <em>could</em> call, including every branch. A generic contributes all of its <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch targets, not just the one method a particular run happened to hit. The result is a tree of possibilities, not a record of an execution.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># mid-debug, "how did execution get here right now"</span></span>
 <span><span class="fu">lobstr</span><span class="fu">::</span><span class="fu">cst</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># no execution at all, "what could this function call, in total"</span></span>
 <span><span class="fu"><a href="../reference/call_stack.html">call_stack</a></span><span class="op">(</span><span class="st">"dplyr::select"</span><span class="op">)</span></span></code></pre></div>
-<p>Reach for <code>cst()</code> when you’re already inside the problem.
-Reach for <code><a href="../reference/call_stack.html">call_stack()</a></code> when you want to audit a function
-you’d rather not execute, or map an unfamiliar codebase before running
-any of it.</p>
-</div>
-<div class="section level2">
-<h2 id="recap">Recap<a class="anchor" aria-label="anchor" href="#recap"></a>
+<p>Reach for <code>cst()</code> when you’re already inside the problem. Reach for <code><a href="../reference/call_stack.html">call_stack()</a></code> when you want to audit a function you’d rather not execute, or map an unfamiliar codebase before running any of it.</p>
+</section><section class="level2"><h2 id="recap">Recap<a class="anchor" aria-label="anchor" href="#recap"></a>
 </h2>
-<p><code><a href="../reference/call_stack.html">call_stack()</a></code> maps what a function can call without
-running it. It resolves <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch into the
-registered methods, and <code>max_depth</code> controls how far down it
-goes. Leaves mark primitives, cycles, and calls that static analysis
-can’t follow.</p>
-</div>
-<div class="section level2">
-<h2 id="learning-more">Learning more<a class="anchor" aria-label="anchor" href="#learning-more"></a>
+<p><code><a href="../reference/call_stack.html">call_stack()</a></code> maps what a function can call without running it. It resolves <code><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod()</a></code> dispatch into the registered methods, and <code>max_depth</code> controls how far down it goes. Leaves mark primitives, cycles, and calls that static analysis can’t follow.</p>
+</section><section class="level2"><h2 id="learning-more">Learning more<a class="anchor" aria-label="anchor" href="#learning-more"></a>
 </h2>
-<p>See <code><a href="../reference/call_stack.html">?call_stack</a></code> for the full argument reference, and
-<code><a href="../reference/print.call_stack.html">?print.call_stack</a></code> for how the tree is drawn.</p>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+<p>See <code><a href="../reference/call_stack.html">?call_stack</a></code> for the full argument reference, and <code><a href="../reference/print.call_stack.html">?print.call_stack</a></code> for how the tree is drawn.</p>
+</section><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'light-border',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config);
+    }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
-
 
 
     <footer><div class="pkgdown-footer-left">

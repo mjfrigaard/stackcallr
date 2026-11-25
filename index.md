@@ -143,6 +143,8 @@ expressions to keep), and `max_depth`;
 [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
 adds `include_ns` (show calls to other packages) and `include_defaults`
 (read default argument values).
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+also reads R6 classes and names each method `Class$method`.
 
 See
 [`vignette("stackcallr")`](https://mjfrigaard.github.io/stackcallr/articles/stackcallr.md)

@@ -241,6 +241,74 @@ If a function is defined in more than one file,
 [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
 warns and names the files. The definition parsed last is used.
 
+## R6 classes
+
+Methods of R6 classes are nodes too, named `Class$method`. `initialize`
+is shown as `Class$new`, since that’s how it gets called. A variable
+assigned `Class$new()` inside a function resolves its method calls, so
+`inputs$ui()` below becomes `ModInputs$ui`:
+
+``` r
+
+r6_dir <- tempfile("r6app")
+dir.create(r6_dir)
+
+writeLines(c(
+  "ModInputs <- R6::R6Class('ModInputs',",
+  "  public = list(",
+  "    initialize = function(id) private$ns <- shiny::NS(id),",
+  "    ui = function() private$picker(),",
+  "    server = function() shiny::moduleServer('inputs', function(input, output, session) NULL)",
+  "  ),",
+  "  private = list(ns = NULL, picker = function() util_picker())",
+  ")"
+), file.path(r6_dir, "ModInputs.R"))
+
+writeLines(c(
+  "app_ui <- function() { inputs <- ModInputs$new('inputs'); inputs$ui() }",
+  "app_server <- function() { inputs <- ModInputs$new('inputs'); inputs$server() }",
+  "launch <- function() { app_ui(); app_server() }",
+  "util_picker <- function() 1"
+), file.path(r6_dir, "app.R"))
+
+call_tree_dir(r6_dir, root = "launch")
+#> █─launch
+#> ├─█─app_ui
+#> │ ├─ModInputs$new
+#> │ └─█─ModInputs$ui
+#> │   └─█─ModInputs$picker
+#> │     └─util_picker
+#> └─█─app_server
+#>   ├─ModInputs$new
+#>   └─ModInputs$server
+```
+
+`self$m()`, `private$m()`, and `super$m()` resolve within the class and
+follow `inherit`. A class counts as a module for `modules_only` when any
+of its methods calls [`NS()`](https://rdrr.io/pkg/shiny/man/NS.html) or
+[`moduleServer()`](https://rdrr.io/pkg/shiny/man/moduleServer.html). Its
+`$new` and public methods are then kept, and private helpers are spliced
+out:
+
+``` r
+
+call_tree_dir(r6_dir, root = "launch", modules_only = TRUE)
+#> █─launch
+#> ├─█─app_ui
+#> │ ├─ModInputs$new
+#> │ └─ModInputs$ui
+#> └─█─app_server
+#>   ├─ModInputs$new
+#>   └─ModInputs$server
+```
+
+A method can be the root, too:
+`call_tree_dir(r6_dir, root = "ModInputs$ui")`. See
+[`vignette("r6")`](https://mjfrigaard.github.io/stackcallr/articles/r6.md)
+for inheritance, the full set of rules, and what
+[`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
+can’t follow.
+
 ## Inspecting a live app with `call_tree_app()`
 
 `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only)` works on
@@ -349,13 +417,16 @@ works entirely from parsed source:
 2.  Each top-level expression is checked for a function assignment
     (`name <- function(...)`, `name = function(...)`, or
     `assign("name", function(...))`), and the name and unevaluated body
-    are kept.
+    are kept. An R6 class (`Name <- R6Class(...)`) adds one node per
+    method, named `Name$method`.
 3.  Each body is walked recursively for references to the other
     collected names. Both direct calls (`fun()`) and bare references
     (`fun`) count, so a function passed as an argument still registers
     as an edge. A bare name that the function binds itself (a parameter,
     a variable assigned with `<-` or `=`, or a `for` loop variable) is
-    skipped, because it refers to that value and not the function.
+    skipped, because it refers to that value and not the function. The
+    name after `$` (as in `obj$g()`) is never read as a call to `g()`;
+    it only counts when it resolves to an R6 method.
 4.  The tree is built depth-first from `root`, skipping any name already
     on the current path, so recursive or mutually recursive functions
     don’t loop forever.
@@ -392,8 +463,10 @@ one raises an error that says so, and tells you to pass the
 Two other limits are worth knowing:
 
 - [`call_tree_dir()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_dir.md)
-  only sees top-level function definitions. A function defined inside
-  another function, or built by a factory, isn’t a node.
+  only sees top-level function definitions and R6 methods. A function
+  defined inside another function, or built by a factory, isn’t a node.
+  An R6 object stored in a field (`self$data <- Class$new()`) or passed
+  in as an argument isn’t tracked, so its method calls aren’t edges.
 - [`call_tree_app()`](https://mjfrigaard.github.io/stackcallr/reference/call_tree_app.md)
   only sees what’s visible from the server’s environment chain.
   Functions that live in an unrelated environment, or in a package
