@@ -76,3 +76,42 @@ main p,
 main li {
   max-width: 70ch;
 }
+
+// Mermaid diagrams: node colors are set in each diagram; edges, edge
+// labels, subgraph titles, and inline code follow the light/dark theme
+svg.mermaid-js {
+  code {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .edgeLabel,
+  .edgeLabel p,
+  .edgeLabel span,
+  .labelBkg {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+  }
+
+  .edgeLabel rect {
+    fill: var(--bs-body-bg) !important;
+  }
+
+  .cluster-label,
+  .cluster-label p,
+  .cluster-label span {
+    color: var(--bs-body-color) !important;
+  }
+
+  .flowchart-link {
+    stroke: var(--bs-body-color) !important;
+  }
+
+  marker path,
+  .arrowheadPath {
+    fill: var(--bs-body-color) !important;
+    stroke: var(--bs-body-color) !important;
+  }
+}

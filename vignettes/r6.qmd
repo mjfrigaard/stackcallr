@@ -56,14 +56,17 @@ flowchart TD
     plot --> mp
     base --> lm
 
-    style classes fill:#FFFFFF,color:#000000,stroke:#333,stroke-width:1px,rx:10,ry:10
-    style helpers fill:#FFFFFF,color:#000000,stroke:#333,stroke-width:1px,rx:10,ry:10
-    style launch fill:#2A6F77,color:#FFFFFF
-    style appui fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style appsrv fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style inputs fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style plot fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style base fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style classes fill:none,stroke:#7FBFC6,stroke-width:1px,rx:10,ry:10
+    style helpers fill:none,stroke:#7FBFC6,stroke-width:1px,rx:10,ry:10
+    style sv fill:#E8A33D,color:#1B2A41,stroke:#E8A33D
+    style mp fill:#E8A33D,color:#1B2A41,stroke:#E8A33D
+    style lm fill:#E8A33D,color:#1B2A41,stroke:#E8A33D
+    style launch fill:#1B2A41,color:#F2E6C2,stroke:#E8A33D,stroke-width:2px
+    style appui fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style appsrv fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style inputs fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style plot fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style base fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
 ```
 
 `ModBase` holds what every module shares: `initialize()` stores the module id and its namespace function, and a private `log()` method writes a message.
@@ -138,12 +141,16 @@ flowchart TD
     found -->|yes| method("<code>Class$m</code>")
     found -->|no| none
 
-    style entry fill:#2A6F77,color:#FFFFFF
-    style none fill:#B83A4B,color:#FFFFFF
-    style newnode fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style method fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
-    style own fill:#FFFFFF,color:#000000,stroke:#333,rx:5,ry:5
-    style start fill:#FFFFFF,color:#000000,stroke:#333,rx:5,ry:5
+    style entry fill:#1B2A41,color:#F2E6C2,stroke:#E8A33D,stroke-width:2px
+    style none fill:#B83A4B,color:#FFFFFF,stroke:#B83A4B
+    style newnode fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style method fill:#2A6F77,color:#FFFFFF,stroke:#7FBFC6,rx:5,ry:5
+    style own fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8,rx:5,ry:5
+    style start fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8,rx:5,ry:5
+    style isnew fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8
+    style isself fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8
+    style isvar fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8
+    style found fill:#F2E6C2,color:#1B2A41,stroke:#E4D8B8
 ```
 
 An instance variable counts when the function assigns it with `<-` or `=`, and the right-hand side contains `Class$new()`. That covers a wrapped call such as `x <- tryCatch(Class$new(), error = function(e) NULL)`.
