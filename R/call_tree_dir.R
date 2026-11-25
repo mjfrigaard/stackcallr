@@ -3,7 +3,8 @@
 #' @description
 #' `call_tree_dir()` parses every `.R` file in `path` without evaluating any
 #' of it, extracts each top-level function definition
-#' (`name <- function(...) ...`), and builds the call graph among those
+#' (`name <- function(...) ...`) and the methods of each R6 class
+#' (`Name <- R6Class(...)`), and builds the call graph among those
 #' locally-defined functions. The result is the tree of calls reachable
 #' from `root`, in the same shape [call_stack()] returns, so it prints the
 #' same way.
@@ -15,8 +16,9 @@
 #'
 #' @param path Character scalar; directory containing `.R` files. Default
 #'   `"R"`.
-#' @param root Character scalar; name of the function to root the tree at.
-#'   Must be one of the top-level functions found in `path`; otherwise
+#' @param root Character scalar; name of the function to root the tree at,
+#'   or an R6 method written as `"Class$method"` (`"Class$new"` for
+#'   `initialize`). Must be one of the functions found in `path`; otherwise
 #'   `call_tree_dir()` errors rather than returning an empty tree.
 #' @param modules_only Logical. When `TRUE`, prune the tree to `root`, the
 #'   functions `root` calls directly, and functions that call [shiny::NS()]
@@ -58,6 +60,15 @@
 #' When `modules_only = TRUE`, the functions `root` calls directly (such as
 #' `app_ui()` and `app_server()`) are always kept, so UI and server modules
 #' stay grouped under them.
+#'
+#' R6 methods are nodes named `Class$method`, with `initialize` shown as
+#' `Class$new`. `Class$new()` calls that node. `self$m()`, `private$m()`,
+#' and `super$m()` resolve within the class, following `inherit`. A
+#' variable assigned `Class$new(...)` inside a function (`x <-
+#' Class$new()`) resolves `x$m()` to `Class$m`. With `modules_only`, a
+#' class with any method that calls `NS()` or `moduleServer()` is a
+#' module, and its `$new` and public methods are kept. The name after `$`
+#' is never read as a call to a function of the same name.
 #'
 #' A function defined more than once in `path` raises a warning naming the
 #' files; the definition parsed last (files in alphabetical order) is used.
@@ -104,17 +115,24 @@ call_tree_dir <- function(path = "R",
   }
 
   ext_names <- ns_exports(include_ns)
-  call_graph <- lapply(func_defs, function(def) {
+  classes <- attr(func_defs, "r6_classes")
+  call_graph <- lapply(structure(known_names, names = known_names), function(nm) {
+    def <- func_defs[[nm]]
     exprs <- list(def)
     if (include_defaults) {
       exprs <- c(as.list(def[[2]]), exprs)
     }
-    call_items(exprs, known_names, include_ns, ext_names, local_names(def))
+    ctx <- if (length(classes) > 0) {
+      list(classes = classes, self = r6_owner(nm, classes), vars = r6_instances(def, classes))
+    }
+    call_items(exprs, known_names, include_ns, ext_names, local_names(def), ctx)
   })
 
   tree <- build_tree(root, call_graph)
 
-  modules <- if (modules_only) names(which(vapply(func_defs, uses_ns, logical(1))))
+  modules <- if (modules_only) {
+    unique(c(names(which(vapply(func_defs, uses_ns, logical(1)))), r6_module_nodes(classes)))
+  }
   tree <- trim_tree(tree, modules, exclude, max_depth, keep, prune)
 
   class(tree) <- "call_stack"
@@ -124,14 +142,17 @@ call_tree_dir <- function(path = "R",
 #' Parse every .R file in a directory and collect top-level function defs
 #'
 #' Returns a named list of function definitions (unevaluated), keyed by the
-#' name each was assigned to. Files that fail to parse are skipped. Names
-#' defined more than once raise one warning listing each name and its files.
+#' name each was assigned to. R6 class methods are included as `Class$method`
+#' (see `r6_method_defs()`), and the classes are kept in the `"r6_classes"`
+#' attribute. Files that fail to parse are skipped. Names defined more than
+#' once raise one warning listing each name and its files.
 #'
 #' @noRd
 parse_dir_functions <- function(path) {
   r_files <- list.files(path, pattern = "\\.[Rr]$", full.names = TRUE)
 
   func_defs <- list()
+  classes <- list()
   def_files <- list()
   for (f in r_files) {
     exprs <- tryCatch(parse(f), error = function(e) NULL)
@@ -140,9 +161,13 @@ parse_dir_functions <- function(path) {
     }
     for (expr in exprs) {
       def <- extract_func_def(expr)
+      cls <- if (is.null(def)) extract_r6_def(expr)
       if (!is.null(def)) {
         func_defs[[def$name]] <- def$body
         def_files[[def$name]] <- c(def_files[[def$name]], basename(f))
+      } else if (!is.null(cls)) {
+        classes[[cls$name]] <- cls
+        def_files[[cls$name]] <- c(def_files[[cls$name]], basename(f))
       }
     }
   }
@@ -156,6 +181,8 @@ parse_dir_functions <- function(path) {
       call. = FALSE
     )
   }
+  func_defs <- c(func_defs, r6_method_defs(classes))
+  attr(func_defs, "r6_classes") <- classes
   func_defs
 }
 
@@ -297,19 +324,19 @@ uses_ns <- function(expr) {
 #'
 #' @noRd
 call_items <- function(exprs, known_names, include_ns = NULL, ext_names = character(0),
-                       bound = character(0)) {
+                       bound = character(0), ctx = NULL) {
   items <- list()
   for (i in seq_along(exprs)) {
     if (identical(exprs[[i]], quote(expr = ))) {
       next
     }
-    items <- c(items, expr_items(exprs[[i]], known_names, include_ns, ext_names, bound))
+    items <- c(items, expr_items(exprs[[i]], known_names, include_ns, ext_names, bound, ctx))
   }
   merge_items(items)
 }
 
 #' @noRd
-expr_items <- function(expr, known_names, include_ns, ext_names, bound) {
+expr_items <- function(expr, known_names, include_ns, ext_names, bound, ctx = NULL) {
   if (is.name(expr)) {
     nm <- as.character(expr)
     return(if (nm %in% known_names && !nm %in% bound) list(nm) else list())
@@ -317,9 +344,19 @@ expr_items <- function(expr, known_names, include_ns, ext_names, bound) {
   if (!is.call(expr)) {
     return(list())
   }
+  if (is_dollar(expr)) {
+    return(expr_items(expr[[2]], known_names, include_ns, ext_names, bound, ctx))
+  }
 
   fn <- expr[[1]]
-  args <- call_items(as.list(expr)[-1], known_names, include_ns, ext_names, bound)
+  args <- call_items(as.list(expr)[-1], known_names, include_ns, ext_names, bound, ctx)
+
+  if (is_dollar(fn)) {
+    target <- r6_target(fn, ctx)
+    if (!is.null(target) && target %in% known_names) {
+      return(c(list(target), args))
+    }
+  }
 
   if (is.call(fn) && length(fn) == 3 && is.name(fn[[1]]) && as.character(fn[[1]]) %in% c("::", ":::")) {
     if (as.character(fn[[2]]) %in% include_ns) {
@@ -337,7 +374,7 @@ expr_items <- function(expr, known_names, include_ns, ext_names, bound) {
     }
     return(args)
   }
-  c(expr_items(fn, known_names, include_ns, ext_names, bound), args)
+  c(expr_items(fn, known_names, include_ns, ext_names, bound, ctx), args)
 }
 
 #' Deduplicate call graph items by name, merging repeated external calls

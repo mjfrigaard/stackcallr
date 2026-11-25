@@ -1,0 +1,197 @@
+---
+title: "R6 classes"
+vignette: >
+  %\VignetteIndexEntry{R6 classes}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(stackcallr)
+r6_app <- system.file("examples", "r6app", package = "stackcallr")
+```
+
+Shiny apps built with [R6](https://r6.r-lib.org/) classes keep their modules in methods, not in top-level functions. A tree that only reads `name <- function(...)` definitions skips them entirely: `app_ui()` and `app_server()` show up as leaves, and every module call inside them is invisible. In this vignette I'll cover how `call_tree_dir()` reads R6 classes, which method calls it can follow, and where it stops.
+
+## The example app
+
+The app used throughout this vignette ships with stackcallr in `inst/examples/r6app/`. It has three R6 classes and a few helper functions:
+
+```{mermaid}
+%%| eval: true
+%%| fig-cap: 'The example app: functions, R6 classes, and helpers'
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px', 'darkMode':false}}}%%
+
+flowchart TD
+    launch(["<code>launch()</code>"])
+    launch --> appui("<code>app_ui()</code>")
+    launch --> appsrv("<code>app_server()</code>")
+
+    subgraph classes["<strong>R6 classes</strong>"]
+        inputs("<code>ModInputs</code>")
+        plot("<code>ModPlot</code>")
+        base("<code>ModBase</code>")
+    end
+
+    appui --> inputs
+    appui --> plot
+    appsrv --> inputs
+    appsrv --> plot
+    inputs -. "inherit" .-> base
+    plot -. "inherit" .-> base
+
+    subgraph helpers["<strong>Helpers</strong>"]
+        sv[["<code>select_var()</code>"]]
+        mp[["<code>make_plot()</code>"]]
+        lm[["<code>log_msg()</code>"]]
+    end
+
+    inputs --> sv
+    plot --> mp
+    base --> lm
+
+    style classes fill:#FFFFFF,color:#000000,stroke:#333,stroke-width:1px,rx:10,ry:10
+    style helpers fill:#FFFFFF,color:#000000,stroke:#333,stroke-width:1px,rx:10,ry:10
+    style launch fill:#2A6F77,color:#FFFFFF
+    style appui fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style appsrv fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style inputs fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style plot fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style base fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+```
+
+`ModBase` holds what every module shares: `initialize()` stores the module id and its namespace function, and a private `log()` method writes a message.
+
+```{r}
+#| label: mod-base
+#| eval: false
+#| file: !expr file.path(r6_app, "ModBase.R")
+```
+
+`ModInputs` and `ModPlot` inherit from `ModBase`, so neither defines its own `initialize()`. Each adds a `ui()` and a `server()` method. `ModInputs` also has a private `picker()` method:
+
+```{r}
+#| label: mod-inputs
+#| eval: false
+#| file: !expr file.path(r6_app, "ModInputs.R")
+```
+
+```{r}
+#| label: mod-plot
+#| eval: false
+#| file: !expr file.path(r6_app, "ModPlot.R")
+```
+
+`app_ui()` and `app_server()` create one object per module with `$new()` and call its methods:
+
+```{r}
+#| label: app
+#| eval: false
+#| file: !expr file.path(r6_app, "app.R")
+```
+
+## Methods are nodes
+
+`call_tree_dir()` turns each method into a node named `Class$method`. `initialize()` is the exception: it's named `Class$new`, because `$new()` is how it gets called. The tree from `launch()` follows the app all the way down to the helpers:
+
+```{r}
+#| label: tree-launch
+#| collapse: false
+#| comment: ""
+call_tree_dir(r6_app, root = "launch")
+```
+
+Three things in this tree come from the R6 rules rather than from plain function calls:
+
+* `ModInputs$new` calls `ModBase$new`. A class without its own `initialize()` gets a `$new` node that calls its parent's `$new`.
+* `ModInputs$ui` calls `ModInputs$picker`, a private method. `private$picker()` resolves within the class.
+* `ModInputs$server` calls `ModBase$log`. `private$log()` isn't defined in `ModInputs`, so the lookup moves up to `ModBase`, the class it inherits from.
+
+The variable names in `app_ui()` don't matter. `inputs <- ModInputs$new("inputs")` tells `call_tree_dir()` that `inputs` holds a `ModInputs` object, so `inputs$ui()` becomes `ModInputs$ui`.
+
+## Which calls resolve?
+
+Every method call has the same shape: `lhs$m()`. `call_tree_dir()` decides what `lhs` refers to, then looks for `m` in that class. If the class doesn't define `m`, it checks the parent named in `inherit`, then that class's parent, and so on. `Class$m` names the first class that defines it:
+
+```{mermaid}
+%%| eval: true
+%%| fig-cap: 'How call_tree_dir() resolves lhs$m()'
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'fontSize':'16px', 'darkMode':false}}}%%
+
+flowchart TD
+    entry(["<code>lhs$m()</code>"])
+    entry --> isnew{"Is <code>lhs</code> a class<br>and <code>m</code> <code>new</code>?"}
+    isnew -->|yes| newnode("<code>Class$new</code>")
+    isnew -->|no| isself{"Is <code>lhs</code> <code>self</code>,<br><code>private</code>, or <code>super</code>?"}
+    isself -->|yes| own("Start at the method's class<br>(its parent for <code>super</code>)")
+    isself -->|no| isvar{"Was <code>lhs</code> assigned<br><code>Class$new()</code> here?"}
+    isvar -->|yes| start("Start at <code>Class</code>")
+    isvar -->|no| none(["Not an edge"])
+    own --> found{"Is <code>m</code> defined in<br>this class or a parent?"}
+    start --> found
+    found -->|yes| method("<code>Class$m</code>")
+    found -->|no| none
+
+    style entry fill:#2A6F77,color:#FFFFFF
+    style none fill:#B83A4B,color:#FFFFFF
+    style newnode fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style method fill:#4CBB9D,color:#FFFFFF,rx:5,ry:5
+    style own fill:#FFFFFF,color:#000000,stroke:#333,rx:5,ry:5
+    style start fill:#FFFFFF,color:#000000,stroke:#333,rx:5,ry:5
+```
+
+An instance variable counts when the function assigns it with `<-` or `=`, and the right-hand side contains `Class$new()`. That covers a wrapped call such as `x <- tryCatch(Class$new(), error = function(e) NULL)`.
+
+When none of the rules match, the call isn't an edge. The name after `$` is never read as a plain function call either. In `result$summary`, `summary` is a list element, so a `summary()` function defined in `R/` doesn't show up under it.
+
+## Methods as roots
+
+A method can be the root of a tree. Write it the way it appears in the output, as `"Class$method"`:
+
+```{r}
+#| label: tree-method
+#| collapse: false
+#| comment: ""
+call_tree_dir(r6_app, root = "ModPlot$server")
+```
+
+Use `"Class$new"` to start at a class's `initialize()` method.
+
+## Modules with `modules_only`
+
+`modules_only = TRUE` keeps the functions `root` calls directly, plus the Shiny modules below them. An R6 class counts as a module when any of its methods calls `shiny::NS()` or `shiny::moduleServer()`. Its `$new` and public methods are then kept, and private helpers such as `picker()` and `log()` are spliced out:
+
+```{r}
+#| label: tree-modules
+#| collapse: false
+#| comment: ""
+call_tree_dir(r6_app, root = "launch", modules_only = TRUE)
+```
+
+`ModInputs` and `ModPlot` count as modules because their `server()` methods call `moduleServer()`. `ModBase` counts too, because its `initialize()` calls `NS()`, so `ModBase$new` stays under each child's `$new`.
+
+## What it can't follow
+
+`call_tree_dir()` reads the source without running it, so it only follows objects it can see being created. These calls aren't edges:
+
+* An object stored in a field, such as `self$data <- MovieData$new()` followed by `self$data$filter()`.
+* An object passed in as an argument, such as `function(inputs) inputs$server()`.
+* An object returned by another function, such as `x <- make_inputs()` followed by `x$ui()`.
+
+The other tree builders don't read R6 classes. `call_tree_app()` collects plain functions from the server's environment, and `call_stack()` treats R6 dispatch as a leaf (see `vignette("stackcallr")`).
+
+## Recap
+
+`call_tree_dir()` names each R6 method `Class$method` and shows `initialize()` as `Class$new`. It follows `Class$new()`, `self$m()`, `private$m()`, `super$m()`, and method calls on local variables assigned `Class$new()`, moving up through `inherit` when a method isn't defined in the class itself. Methods can be roots, and a class that uses `NS()` or `moduleServer()` counts as a module for `modules_only`.
+
+## Learning more
+
+* `vignette("shiny-modules")` for `call_tree_dir()` and `call_tree_app()` on function-based modules.
+* `vignette("stackcallr")` for `call_stack()`.
+* The [R6 documentation](https://r6.r-lib.org/articles/Introduction.html) for `self`, `private`, `super`, and `inherit`.

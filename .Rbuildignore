@@ -1,8 +1,9 @@
 ^stackcallr\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^README\.Rmd$
+^README\.qmd$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
 ^\.github$
+^vignettes/\.quarto$

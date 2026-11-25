@@ -1,5 +1,6 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+<!-- README.md is generated from README.qmd. Please edit that file -->
 
 # stackcallr
 
@@ -132,6 +133,8 @@ place. `call_tree_dir()` and `call_tree_app()` also take `prune` (drop a
 function and its subtree), `keep` (regular expressions to keep), and
 `max_depth`; `call_tree_dir()` adds `include_ns` (show calls to other
 packages) and `include_defaults` (read default argument values).
+`call_tree_dir()` also reads R6 classes and names each method
+`Class$method`.
 
 See `vignette("stackcallr")` for how `call_stack()` resolves a function,
 and `vignette("shiny-modules")` for `call_tree_dir()` and

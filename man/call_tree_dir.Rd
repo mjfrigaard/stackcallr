@@ -20,8 +20,9 @@ call_tree_dir(
 \item{path}{Character scalar; directory containing \code{.R} files. Default
 \code{"R"}.}
 
-\item{root}{Character scalar; name of the function to root the tree at.
-Must be one of the top-level functions found in \code{path}; otherwise
+\item{root}{Character scalar; name of the function to root the tree at,
+or an R6 method written as \code{"Class$method"} (\code{"Class$new"} for
+\code{initialize}). Must be one of the functions found in \code{path}; otherwise
 \code{call_tree_dir()} errors rather than returning an empty tree.}
 
 \item{modules_only}{Logical. When \code{TRUE}, prune the tree to \code{root}, the
@@ -71,7 +72,8 @@ An object of class \code{call_stack} (see \code{\link[=call_stack]{call_stack()}
 \description{
 \code{call_tree_dir()} parses every \code{.R} file in \code{path} without evaluating any
 of it, extracts each top-level function definition
-(\code{name <- function(...) ...}), and builds the call graph among those
+(\code{name <- function(...) ...}) and the methods of each R6 class
+(\code{Name <- R6Class(...)}), and builds the call graph among those
 locally-defined functions. The result is the tree of calls reachable
 from \code{root}, in the same shape \code{\link[=call_stack]{call_stack()}} returns, so it prints the
 same way.
@@ -85,6 +87,14 @@ Shiny app's source, without installing or sourcing it first.
 When \code{modules_only = TRUE}, the functions \code{root} calls directly (such as
 \code{app_ui()} and \code{app_server()}) are always kept, so UI and server modules
 stay grouped under them.
+
+R6 methods are nodes named \code{Class$method}, with \code{initialize} shown as
+\code{Class$new}. \code{Class$new()} calls that node. \code{self$m()}, \code{private$m()},
+and \code{super$m()} resolve within the class, following \code{inherit}. A
+variable assigned \code{Class$new(...)} inside a function (\code{x <- Class$new()}) resolves \code{x$m()} to \code{Class$m}. With \code{modules_only}, a
+class with any method that calls \code{NS()} or \code{moduleServer()} is a
+module, and its \verb{$new} and public methods are kept. The name after \code{$}
+is never read as a call to a function of the same name.
 
 A function defined more than once in \code{path} raises a warning naming the
 files; the definition parsed last (files in alphabetical order) is used.

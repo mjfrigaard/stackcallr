@@ -1,3 +1,13 @@
+# stackcallr 0.3.0
+
+## New features
+
+* `call_tree_dir()` reads R6 classes. Each method is a node named `Class$method`, with `initialize` shown as `Class$new`. `Class$new()`, `self$m()`, `private$m()`, `super$m()`, and `x$m()` on a local `x <- Class$new()` are followed. Methods can be roots (`root = "ModInputs$ui"`). With `modules_only`, a class whose methods call `NS()` or `moduleServer()` counts as a module.
+
+## Bug fixes
+
+* The name after `$` or `@` is no longer read as a call: `result$class_diffs` doesn't draw an edge to a `class_diffs()` function.
+
 # stackcallr 0.2.1
 
 ## Bug fixes

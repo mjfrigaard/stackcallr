@@ -1,17 +1,12 @@
 ---
-output: github_document
+format: gfm
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
+<!-- README.md is generated from README.qmd. Please edit that file -->
 
 # stackcallr
 
@@ -38,7 +33,8 @@ pak::pak("mjfrigaard/stackcallr")
 namespaced, and returns the tree of functions it calls. The example
 below stops two levels down:
 
-```{r example}
+```{r}
+#| label: example
 library(stackcallr)
 
 call_stack("stats::sd", max_depth = 2)
@@ -49,7 +45,8 @@ registered methods, rather than stopping at `UseMethod` itself.
 Every `mean.*` node below is a real method, ready to be expanded further
 with a larger `max_depth`:
 
-```{r generic-example}
+```{r}
+#| label: generic-example
 call_stack("mean", max_depth = 1)
 ```
 
@@ -65,7 +62,8 @@ down to the functions `root` calls plus functions calling `NS()` or
 `moduleServer()`. Deeper wrapper functions are spliced out, so the
 modules underneath them stay visible:
 
-```{r modules-example}
+```{r}
+#| label: modules-example
 app_dir <- tempfile("app")
 dir.create(app_dir)
 writeLines(
@@ -96,12 +94,10 @@ to work; shiny is in `Suggests`, needed only if you're building a
   `fn` to a function, then recursively walks its body via
   `codetools::findGlobals()`, following S3 dispatch where it finds
   `UseMethod()` calls.
-* `call_tree_dir(path, root, modules_only = FALSE, exclude = NULL, max_depth = Inf,
-  keep = NULL, prune = NULL, include_ns = NULL, include_defaults = FALSE)`: parses a directory
+* `call_tree_dir(path, root, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL, include_ns = NULL, include_defaults = FALSE)`: parses a directory
   of `.R` files and builds the call tree for every function in it,
   without loading or running any of it.
-* `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE,
-  exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL)`: builds the call tree of a Shiny app object by inspecting a
+* `call_tree_app(app, app_fun, ui_fun, server_fun, modules_only = FALSE, exclude = NULL, max_depth = Inf, keep = NULL, prune = NULL)`: builds the call tree of a Shiny app object by inspecting a
   `shiny.appobj`'s server function and its enclosing environment.
 * `print.call_stack()`: renders the tree returned by any of the three,
   in the style of `lobstr::ast()`.
@@ -113,6 +109,8 @@ place. `call_tree_dir()` and `call_tree_app()` also take `prune` (drop a
 function and its subtree), `keep` (regular expressions to keep), and
 `max_depth`; `call_tree_dir()` adds `include_ns` (show calls to other
 packages) and `include_defaults` (read default argument values).
+`call_tree_dir()` also reads R6 classes and names each method
+`Class$method`.
 
 See `vignette("stackcallr")` for how `call_stack()` resolves a function,
 and `vignette("shiny-modules")` for `call_tree_dir()` and

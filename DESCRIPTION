@@ -1,6 +1,6 @@
 Package: stackcallr
 Title: Statically Inspect and Visualize the Call Tree of a Function
-Version: 0.2.1
+Version: 0.3.0
 Authors@R:
     person("Martin", "Frigaard", , "mjfrigaard@pm.me", role = c("aut", "cre"))
 Description: Builds the call tree of a function from its source code,
@@ -13,6 +13,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests:
     knitr,
+    quarto,
     rmarkdown,
     shiny,
     testthat (>= 3.0.0),
@@ -22,5 +23,5 @@ Imports:
     codetools,
     utils
 Config/roxygen2/version: 8.1.1
-VignetteBuilder: knitr
+VignetteBuilder: quarto
 URL: https://mjfrigaard.github.io/stackcallr/
